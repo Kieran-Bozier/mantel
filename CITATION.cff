@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "mantel: Bloch-basis evaluation of the screened Coulomb interaction"
+authors:
+  - family-names: Bozier
+    given-names: Kieran
+    affiliation: "University of Cambridge"
+version: "1.0.0"
+date-released: "2026-01-01"
+license: MIT
+repository-code: "https://github.com/kieranbozier/mantel"
+abstract: >
+  mantel computes the screened Coulomb interaction matrix elements W(n,m,k)
+  in the Bloch basis using DFT wavefunctions and a dielectric matrix from
+  Yambo. It uses FFT-based density products and supports OpenMP parallelisation
+  over k-points.
+keywords:
+  - "screened Coulomb interaction"
+  - "GW approximation"
+  - "many-body perturbation theory"
+  - "density functional theory"
+  - Fortran
+  - FFTW
