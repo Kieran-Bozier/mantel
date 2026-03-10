@@ -148,5 +148,9 @@ rm -f ${final_dir}/charge-density.dat
 rm -f ${final_dir}/*.upf
 log "Wavefunction files copied to ${final_dir}."
 
+
+#Ensure the outdir is removed to avoid confusion for later steps
+[ -d "${outdir}" ] && rm -rf "${outdir}"
+
 log "All done. Total elapsed: $(( SECONDS - t_start ))s"
 

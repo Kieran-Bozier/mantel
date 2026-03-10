@@ -210,4 +210,10 @@ build_yambo_in "$seed" "$nbnd" "$ngsblk"
 log "Running Yambo RPA screening..."
 mpirun -n ${mpinp} yambo -Input yambo_RPA.in -J RPA
 
+#Ensure outdir is removed to remove confusion for later steps
+outdir=$(grep 'outdir' ${seed}.scf.in | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
+[ -d "${outdir}" ] && rm -rf "${outdir}"
+
+
+
 log "Yambo calculation completed. Total elapsed: $(( SECONDS - t_start ))s"
