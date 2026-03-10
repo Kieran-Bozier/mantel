@@ -3,27 +3,41 @@ VPATH    = src
 BUILD_DIR = build
 BUILD   ?= fast
 
-# FFTW3: use FFTW_DIR if set, otherwise fall back to pkg-config
-ifdef FFTW_DIR
-    FFTW_INC = -I$(FFTW_DIR)/include
-    FFTW_LIB = -L$(FFTW_DIR)/lib -lfftw3 -lfftw3_omp
+
+# If we have MKL, we default to using this as we get much better performance
+ifdef MKLROOT
+    # MKL provides fftw3, blas and lapack interfaces
+    INCLUDES = -I$(MKLROOT)/include 
+    LIBS = -L$(MKLROOT)/lib/intel64 \
+            -Wl,--no-as-needed \
+            -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
 else
-    FFTW_INC := $(shell pkg-config --cflags fftw3 2>/dev/null)
-    FFTW_LIB := $(shell pkg-config --libs fftw3 2>/dev/null) -lfftw3_omp
-    ifeq ($(FFTW_INC),)
-        $(error FFTW3 not found. Set FFTW_DIR=/path/to/fftw or ensure pkg-config can find fftw3)
+    #No mkl, use standard fftw3, blas, lapack
+
+    # FFTW3: use FFTW_DIR if set, otherwise fall back to pkg-config
+    ifdef FFTW_DIR
+        FFTW_INC = -I$(FFTW_DIR)/include
+        FFTW_LIB = -L$(FFTW_DIR)/lib -lfftw3 -lfftw3_omp
+    else
+        FFTW_INC := $(shell pkg-config --cflags fftw3 2>/dev/null)
+        FFTW_LIB := $(shell pkg-config --libs fftw3 2>/dev/null) -lfftw3_omp
+        ifeq ($(FFTW_INC),)
+            $(error FFTW3 not found. Set FFTW_DIR=/path/to/fftw or ensure pkg-config can find fftw3)
+        endif
     endif
+
+    INCLUDES = $(FFTW_INC) -I$(BUILD_DIR)
+    LIBS = $(FFTW_LIB) -llapack -lblas
 endif
 
-INCLUDES = $(FFTW_INC) -I$(BUILD_DIR)
 
 ifeq ($(BUILD), profile)
     FFLAGS = -O0 -g -pg -Wall -fcheck=all -fopenmp
 else
-    FFLAGS = -O3 -fopenmp -fbacktrace -march=native
+    FFLAGS = -Ofast -fopenmp -fbacktrace -march=native -flto -funroll-loops -m64
 endif
 
-LIBS = $(FFTW_LIB) -llapack -lblas
+
 
 MODULES = precision.f90 \
           array_io.f90 \
@@ -72,3 +86,4 @@ clean:
 # Module dependency order
 $(BUILD_DIR)/mantel.o:   $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o))
 $(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o
+``
