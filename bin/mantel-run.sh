@@ -207,6 +207,7 @@ for i in ikp_iq*.bin; do
 done
 shopt -u nullglob
 bin_converter.py "ik.bin" || fail "bin_converter.py failed on ik.bin."
+seq 1 $((in_max - in_min + 1)) > in.txt                                     #write i_n
 step_done
 
 # W_ee.py
@@ -215,7 +216,7 @@ Ef=$(grep "Fermi" "${seed}.scf.out" | awk '{print $5}')
 [ -n "$Ef" ] || fail "Could not extract Fermi energy from ${seed}.scf.out."
 echo "[$(timestamp)] Fermi energy: ${Ef} eV"
 W_ee.py "${seed}_yambo.nscf.out" "${seed}.bands.out" "${Ef}" \
-    --sigma 0.8 --numE 200 --minE "-20" --maxE 20 || fail "W_ee.py failed."
+    --sigma 0.8 --numE 200 --minE "-20" --maxE 20 --nmin "$in_min" || fail "W_ee.py failed."
 step_done
 
 # plotter.py
