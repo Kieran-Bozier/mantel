@@ -7,7 +7,7 @@ BUILD   ?= fast
 # If we have MKL, we default to using this as we get much better performance
 ifdef MKLROOT
     # MKL provides fftw3, blas and lapack interfaces
-    INCLUDES = -I$(MKLROOT)/include 
+    INCLUDES = -I$(MKLROOT)/include -I$(MKLROOT)/include/fftw
     LIBS = -L$(MKLROOT)/lib/intel64 \
             -Wl,--no-as-needed \
             -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
