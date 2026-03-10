@@ -6,9 +6,8 @@ matrix ε⁻¹(G,G',q) from Yambo's random-phase approximation (RPA), mantel eva
 matrix element ⟨nk|W(q)|mk'⟩ for all bands n, m and k-points k, k'=k+q. These matrix
 elements are used downstream to compute physically observable quantities such as the
 isoenergy-averaged electron–electron interaction W(E,E'), which characterises how strongly
-electrons at energy E scatter off electrons at energy E'. This quantity is central to
-many-body perturbation theory calculations of, for example, phonon-mediated and purely
-electronic pairing in superconductors.
+electrons at energy E scatter off electrons at energy E'. This quantity is central to the 
+evaluation of the Coulomb pseudopotential µ*.
 
 ---
 

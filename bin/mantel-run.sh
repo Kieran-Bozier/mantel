@@ -161,7 +161,7 @@ done
 #Check we are in an environment with yambopy
 python -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda        
   environment first."
-  
+
 
 [ -d "${wfc_dir}" ]               || fail "${wfc_dir}/ directory not found."
 [ -d "${yambo_dir}/SAVE" ]        || fail "${yambo_dir}/SAVE directory not found."
@@ -200,10 +200,10 @@ step "bin_converter"
 # so the loop simply doesn't run. We restore the default afterwards.
 shopt -s nullglob
 for i in W_iq*.bin; do
-    bin_converter.py "${i}" || fail "bin_converter.py failed on ${i}."
+    bin_converter.py "${i}" --ord "2,0,1" > /dev/null || fail "bin_converter.py failed on ${i}."
 done
 for i in ikp_iq*.bin; do
-    bin_converter.py "${i}" || fail "bin_converter.py failed on ${i}."
+    bin_converter.py "${i}" > /dev/null || fail "bin_converter.py failed on ${i}."
 done
 shopt -u nullglob
 bin_converter.py "ik.bin" || fail "bin_converter.py failed on ik.bin."
