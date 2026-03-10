@@ -153,10 +153,15 @@ echo "========================================"
 RUN_START=$SECONDS
 
 # ----------   Pre-flight checks   ----------
-
+#Check the commands exist
 for cmd in wfc2bin mantel.x prepare_yambo.py bin_converter.py W_ee.py plotter.py; do
     command -v "$cmd" &>/dev/null || fail "'$cmd' not found in PATH."
 done
+
+#Check we are in an environment with yambopy
+python -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda        
+  environment first."
+  
 
 [ -d "${wfc_dir}" ]               || fail "${wfc_dir}/ directory not found."
 [ -d "${yambo_dir}/SAVE" ]        || fail "${yambo_dir}/SAVE directory not found."

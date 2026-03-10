@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # This script creates a set of test data that mantel
 # can then be run on.
@@ -388,6 +389,7 @@ if [ $run_mantel -eq 1 ]; then
     command -v mantel-prep.sh &>/dev/null || fail "'mantel-prep.sh' not found in PATH."
     command -v mantel-run.sh  &>/dev/null || fail "'mantel-run.sh' not found in PATH."
 fi
+
 
 if [ $run_mantel -eq 1 ]; then
     echo "Running mantel on test data..."
