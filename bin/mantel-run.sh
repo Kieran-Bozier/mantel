@@ -49,15 +49,15 @@ fail() {
 read_cfg() {
     local file="$1" block="$2" key="$3"
     # Use awk to extract lines between &block and next /
-    awk "/^[[:space:]]*&${block}[[:space:]]*(![^)]*)?$/,/^[[:space:]]*\//" "$file" \
-        | grep -E "^[[:space:]]*${key}[[:space:]]*=" \
-        | tail -1 \
+    awk "/^[[:space:]]*&${block}[[:space:]]*(![^)]*)?$/,/^[[:space:]]*\//" "$file" |
+        grep -E "^[[:space:]]*${key}[[:space:]]*=" |
+        tail -1 |
         #Remove stuff up to and including =
-        | sed 's/^[^=]*=[[:space:]]*//' \
+        sed 's/^[^=]*=[[:space:]]*//' |
         #Remove any quotes
-        | sed "s/^['\"]//; s/['\"]$//" \
+        sed "s/^['\"]//; s/['\"]$//" |
         #Trim trailing whitespace
-        | sed 's/[[:space:]]*$//'
+        sed 's/[[:space:]]*$//'
 }
 
 is_positive_int() {
