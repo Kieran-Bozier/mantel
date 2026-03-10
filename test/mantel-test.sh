@@ -126,8 +126,8 @@ cat > Al/Al.mantel.in << EOF
 
 &yambo
    yambo_kgrid = "6 6 6"
-   chi_bands   = 10
-   NGsBlkXs    = 25
+   chi_bands   = 50
+   NGsBlkXs    = 4
    yambo_dir   = "YAMBO"
 /
 
@@ -138,7 +138,7 @@ cat > Al/Al.mantel.in << EOF
 &mantel
    num_electrons = 3
    in_min        = 1
-   in_max        = 10
+   in_max        = 6
 /
 
 CELL_PARAMETERS angstrom
@@ -201,8 +201,8 @@ cat > Nb/Nb.mantel.in << EOF
 
 &yambo
    yambo_kgrid = "6 6 6"
-   chi_bands   = 20
-   NGsBlkXs    = 25
+   chi_bands   = 50
+   NGsBlkXs    = 4
    yambo_dir   = "YAMBO"
 /
 
@@ -212,8 +212,8 @@ cat > Nb/Nb.mantel.in << EOF
 
 &mantel
    num_electrons = 13
-   in_min        = 1
-   in_max        = 20
+   in_min        = 3
+   in_max        = 10
 /
 
 CELL_PARAMETERS angstrom
@@ -274,8 +274,8 @@ cat > Ta/Ta.mantel.in << EOF
 
 &yambo
    yambo_kgrid = "6 6 6"
-   chi_bands   = 20
-   NGsBlkXs    = 25
+   chi_bands   = 50
+   NGsBlkXs    = 4
    yambo_dir   = "YAMBO"
 /
 
@@ -285,8 +285,8 @@ cat > Ta/Ta.mantel.in << EOF
 
 &mantel
    num_electrons = 13
-   in_min        = 1
-   in_max        = 20
+   in_min        = 3
+   in_max        = 10
 /
 
 CELL_PARAMETERS angstrom
@@ -352,14 +352,14 @@ EOF
 cat > H3S/H3S.mantel.in << EOF
 &qe
    qe_kgrid = "6 6 6"
-   nbnd     = 13
+   nbnd     = 20
    wfc_dir  = "WFC"
 /
 
 &yambo
    yambo_kgrid = "6 6 6"
-   chi_bands   = 13
-   NGsBlkXs    = 25
+   chi_bands   = 50
+   NGsBlkXs    = 4
    yambo_dir   = "YAMBO"
 /
 
@@ -369,7 +369,7 @@ cat > H3S/H3S.mantel.in << EOF
 
 &mantel
    num_electrons = 18
-   in_min        = 1
+   in_min        = 5
    in_max        = 13
 /
 
