@@ -9,6 +9,8 @@ mpinp=32           # Default MPI cores
 nbnd=""            # Required: number of bands (must be set via -b)
 ngsblk=25          # Default NGsBlkXs (Ry)
 final_dir="YAMBO"  # Default final directory
+seed=""            # Required: seed name (must be set via positional argument)
+kgrid=""           # Required: kgrid for nscf (must be set via positional argument)
 
 # ---- 2. Usage function ----
 usage() {
