@@ -70,6 +70,10 @@ while getopts "fh" opt; do
 done
 shift $((OPTIND-1))
 
+fail() { 
+  echo "Error: $*" >&2; exit 1; 
+}
+
 # -------------     Aluminium example    -----------------
 mkdir -p Al
 
@@ -379,6 +383,12 @@ EOF
 
 
 #####       Now run
+# Check required executables are available before attempting to run
+if [ $run_mantel -eq 1 ]; then
+    command -v mantel-prep.sh &>/dev/null || fail "'mantel-prep.sh' not found in PATH."
+    command -v mantel-run.sh  &>/dev/null || fail "'mantel-run.sh' not found in PATH."
+fi
+
 if [ $run_mantel -eq 1 ]; then
     echo "Running mantel on test data..."
     #------------- Aluminium --------------
