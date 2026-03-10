@@ -143,7 +143,7 @@ build_yambo_nscf(){
     sed -i "s/scf/nscf/" "${seed}_yambo.nscf.in"
 
     #set kgrid
-    sed -i "/K_POINTS automatic/{n;s/.*/$kgrid $kgrid $kgrid 0 0 0/;}" "${seed}_yambo.nscf.in"
+    sed -i "/K_POINTS automatic/{n;s/.*/$kgrid 0 0 0/;}" "${seed}_yambo.nscf.in"
 
     echo "Written ${seed}_yambo.nscf.in for Yambo calculation"
 }
