@@ -139,7 +139,7 @@ cat > Al/Al.mantel.in << EOF
 &mantel
    num_electrons = 3
    in_min        = 1
-   in_max        = 6
+   in_max        = 10
 /
 
 CELL_PARAMETERS angstrom
@@ -213,8 +213,8 @@ cat > Nb/Nb.mantel.in << EOF
 
 &mantel
    num_electrons = 13
-   in_min        = 3
-   in_max        = 10
+   in_min        = 1
+   in_max        = 20
 /
 
 CELL_PARAMETERS angstrom
@@ -286,8 +286,8 @@ cat > Ta/Ta.mantel.in << EOF
 
 &mantel
    num_electrons = 13
-   in_min        = 3
-   in_max        = 10
+   in_min        = 1
+   in_max        = 20
 /
 
 CELL_PARAMETERS angstrom
@@ -370,8 +370,8 @@ cat > H3S/H3S.mantel.in << EOF
 
 &mantel
    num_electrons = 18
-   in_min        = 5
-   in_max        = 13
+   in_min        = 1
+   in_max        = 20
 /
 
 CELL_PARAMETERS angstrom
