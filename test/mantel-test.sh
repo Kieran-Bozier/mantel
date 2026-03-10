@@ -390,6 +390,10 @@ if [ $run_mantel -eq 1 ]; then
     command -v mantel-run.sh  &>/dev/null || fail "'mantel-run.sh' not found in PATH."
 fi
 
+#Check we are in an environment with yambopy
+python -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda        
+  environment first."
+
 
 if [ $run_mantel -eq 1 ]; then
     echo "Running mantel on test data..."
