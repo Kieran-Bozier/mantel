@@ -211,7 +211,7 @@ log "Running Yambo RPA screening..."
 mpirun -n ${mpinp} yambo -Input yambo_RPA.in -J RPA
 
 #Ensure outdir is removed to remove confusion for later steps
-outdir=$(grep 'outdir' ${seed}.scf.in | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
+outdir=$(grep 'outdir' ${workdir}/${seed}.scf.in | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
 [ -d "${outdir}" ] && rm -rf "${outdir}"
 
 
