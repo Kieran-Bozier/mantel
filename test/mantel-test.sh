@@ -21,7 +21,7 @@ cd "$SCRIPT_DIR" || { echo "Error: could not cd to ${SCRIPT_DIR}"; exit 1; }
 # in your environment before running:
 #   PSEUDO_DIR=/my/pseudos test/skydd-test.sh
 # (syntax: ${VAR:-default} uses VAR if set in the environment, else default)
-PSEUDO_DIR="${PSEUDO_DIR:-/path/to/your/pseudopotentials}"
+PSEUDO_DIR="${PSEUDO_DIR:./pseudopotentials/pseudo-dojo-LDA/}"
 
 # SCRATCH_DIR: fast temporary directory for Quantum ESPRESSO output files
 # (wavefunctions, charge densities). These files are large and temporary —

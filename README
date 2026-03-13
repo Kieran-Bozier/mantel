@@ -23,12 +23,19 @@ setup a suitable environment for the python scripts
 
 ### Fortran code
 
-| Dependency | Notes |
-|---|---|
-| gfortran ≥ 9 | C++ standard library via ISO C bindings |
-| FFTW3 | With OpenMP support (`libfftw3_omp`) |
-| LAPACK + BLAS | Standard linear algebra |
-| OpenMP | Parallelisation over k-points |
+|===============|=========================================|
+| Dependency    | Notes                                   |
+|---------------|-----------------------------------------|
+| gfortran ≥ 9  |                                         |
+| FFTW3         | With OpenMP support (`libfftw3_omp`)    |
+| LAPACK + BLAS | Standard linear algebra                 |
+| OpenMP        | Parallelisation over k-points           |
+|===============|=========================================|
+
+If you are running on a system with the intel MKL available, then
+the makefile will find all of these, provided you specify the MKLROOT
+$ export MKLROOT=/path/to/mklroot
+
 
 On macOS (Homebrew):
 $ brew install fftw lapack
@@ -52,14 +59,12 @@ $ make install      # install mantel.x and wfc2bin to bin/
 $ make clean        # remove build artefacts
 
 By default, unless you have MKLROOT set (at which point the makefile 
-uses this), make uses `pkg-config` to locate FFTW3. If FFTW is not on your `PKG_CONFIG_PATH`, or you do not have `pkg-config` override with:
+uses this), make uses `pkg-config` to locate FFTW3. If FFTW is not on your `PKG_CONFIG_PATH`, or you do not have `pkg-config`, override with:
 
 $ make FFTW_DIR=/path/to/fftw
 
-
 For example, with a manual install at `/opt/fftw`:
 $ make FFTW_DIR=/opt/fftw
-
 
 A profile/debug build is also available:
 $ make BUILD=profile   # -O0 -g -pg
