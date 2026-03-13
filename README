@@ -2,7 +2,7 @@
 
 **Bloch-basis evaluation of the screened Coulomb interaction**
 
-`mantel` computes the screened Coulomb interaction matrix elements W(n,m,k) in the Bloch basis using DFT wavefunctions and a dielectric matrix from [Yambo](https://www.yambo-code.eu/). It is designed for use in GW and beyond-DFT calculations where the full W in the band basis is required.
+`mantel` computes the screened Coulomb interaction matrix elements W(n,m,k) in the Bloch basis using DFT wavefunctions and a dielectric matrix from [Yambo](https://www.yambo-code.eu/). 
 
 The core algorithm uses FFT-based density products combined with the inverse dielectric matrix ε⁻¹(G,G',q) from Yambo to evaluate:
 
