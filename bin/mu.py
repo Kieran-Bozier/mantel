@@ -198,8 +198,9 @@ def main():
         in_idx -= 1
     ################################################################
 
-    W_00_all = calculate_W00(sigma_values, band_energies[ik_idx[:, None], in_idx[None, :] + n_min - 1] - Ef, q_weights)
-    Nf_all = np.array([calculate_gaussian_Nf(band_energies - Ef, s) for s in sigma_values])
+    E_kn_subset = band_energies[ik_idx[:, None], in_idx[None, :] + n_min - 1] - Ef
+    W_00_all = calculate_W00(sigma_values, E_kn_subset, q_weights)
+    Nf_all = np.array([calculate_gaussian_Nf(E_kn_subset, s) for s in sigma_values])
     mu_values = W_00_all * Nf_all
 
     # Print table to stdout
