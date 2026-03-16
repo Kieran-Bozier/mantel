@@ -59,7 +59,7 @@ def calculate_gaussian_Nf(energy_array, sigma):
     (i.e. we are working with the full BZ)
 
     We will use the QE definition of the Gaussian smearing, which is given by:
-    \delta(x) -> 1 / sigma*sqrt(pi) * exp(-x^2 / sigma^2) 
+    \\delta(x) -> 1 / sigma*sqrt(pi) * exp(-x^2 / sigma^2)
 
     Inputs:
         energy_array    Shape (num_kpoints, num_Bands)
