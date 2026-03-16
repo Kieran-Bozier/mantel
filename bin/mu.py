@@ -82,10 +82,10 @@ def calculate_gaussian_Nf(energy_array, sigma):
 
 
 
-def calculate_W00(sigmas, E_kn, q_weights):
+def calculate_W00_unnorm(sigmas, E_kn, q_weights):
     """
     Compute W(0,0) — the screened Coulomb matrix element at the Fermi level —
-    for each value of sigma.
+    for each value of sigma. 
 
     For each sigma, the Gaussian weight at E=0 is:
         G_0[k, n] = (1/Nk) * (1/(sigma*sqrt(pi))) * exp(-(E_kn[k,n]/sigma)^2)
@@ -199,8 +199,9 @@ def main():
     ################################################################
 
     E_kn_subset = band_energies[ik_idx[:, None], in_idx[None, :] + n_min - 1] - Ef
-    W_00_all = calculate_W00(sigma_values, E_kn_subset, q_weights)
+    W_00_all_unnorm = calculate_W00_unnorm(sigma_values, E_kn_subset, q_weights)
     Nf_all = np.array([calculate_gaussian_Nf(E_kn_subset, s) for s in sigma_values])
+    W_00_all = W_00_all_unnom / Nf_all**2
     mu_values = W_00_all * Nf_all
 
     # Print table to stdout
