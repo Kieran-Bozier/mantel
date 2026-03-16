@@ -153,6 +153,7 @@ def main():
     parser.add_argument("numSigma", type=int, help="The number of sigma values to consider between minSigma and maxSigma")
     parser.add_argument("--log", action='store_true', help="Whether to use logarithmically spaced sigma values (default: False, i.e. linearly spaced)")
     parser.add_argument("--nmin", type=int, default=1, help="Minimum band index of band.out to consider")
+    parser.add_argument("--nef", type=float, default=None, help="If provided, rescales the mu values based on the density of states rescaling approach. Should be given in states/Ry/spin, like in lambda.")
     args = parser.parse_args()
 
     #arguments
@@ -201,25 +202,56 @@ def main():
     E_kn_subset = band_energies[ik_idx[:, None], in_idx[None, :] + n_min - 1] - Ef
     W_00_all_unnorm = calculate_W00_unnorm(sigma_values, E_kn_subset, q_weights)
     Nf_all = np.array([calculate_gaussian_Nf(E_kn_subset, s) for s in sigma_values])
+    Nf_all_Ry = Nf_all * 13.6057039763
     W_00_all = W_00_all_unnorm / Nf_all**2
     mu_values = W_00_all * Nf_all
 
-    # Print table to stdout
-    print("")
-    print(f"  {'sigma (eV)':>12}  {'N_F (states/eV/spin)':>20}  {'W(0,0) (eV)':>14}  {'mu':>10}")
-    print("  " + "-" * 62)
-    for s, nf, w00, mu in zip(sigma_values, Nf_all, W_00_all, mu_values):
-        print(f"  {s:>12.4f}  {nf:>20.6f}  {w00:>14.6f}  {mu:>10.6f}")
-    print("")
 
-    # Write to file
-    out_file = "mu_results.dat"
-    with open(out_file, 'w') as f:
-        f.write(f"# Ef = {Ef} eV\n")
-        f.write(f"# {'sigma (eV)':>12}  {'N_F (states/eV/spin)':>20}  {'W(0,0) (eV)':>14}  {'mu':>10}\n")
-        for s, nf, w00, mu in zip(sigma_values, Nf_all, W_00_all, mu_values):
-            f.write(f"  {s:>12.4f}  {nf:>20.6f}  {w00:>14.6f}  {mu:>10.6f}\n")
-    print(f"Results written to {out_file}")
+    if args.nef is not None:
+        nef = args.nef 
+        mu_rescaled = mu_values * (nef / Nf_all_Ry)
+
+        # Print table to stdout
+        print("")
+        print(f"  {'sigma (eV)':>12}  {'N_F (states/eV/spin)':>20}  {'N_F (states/Ry/spin)':>20}  {'W(0,0) (eV)':>14}  {'mu':>10}  {'mu rescaled':>14}")
+        print("  " + "-" * 80)
+        for s, nf, nf_ry, w00, mu, mu_resc in zip(sigma_values, Nf_all, Nf_all_Ry, W_00_all, mu_values, mu_rescaled):
+            print(f"  {s:>12.4f}  {nf:>20.6f}  {nf_ry:>20.6f}  {w00:>14.6f}  {mu:>10.6f}  {mu_resc:>14.6f}")
+        print("")
+
+        # Write to file
+        out_file = "mu_results_rescaled.dat"
+        with open(out_file, 'w') as f:
+            f.write(f"# Ef = {Ef} eV\n")
+            f.write(f"# nef = {nef} states/Ry/spin\n")
+            f.write(f"# {'sigma (eV)':>12}  {'N_F (states/eV/spin)':>20}  {'N_F (states/Ry/spin)':>20}  {'W(0,0) (eV)':>14}  {'mu':>10}  {'mu rescaled':>14}\n")
+            for s, nf, nf_ry, w00, mu, mu_resc in zip(sigma_values, Nf_all, Nf_all_Ry, W_00_all, mu_values, mu_rescaled):
+                f.write(f"  {s:>12.4f}  {nf:>20.6f}  {nf_ry:>20.6f}  {w00:>14.6f}  {mu:>10.6f}  {mu_resc:>14.6f}\n")
+
+
+
+    else:
+        nef = None
+        mu_rescaled = np.full_like(mu_values, -1.0)
+
+        # Print table to stdout
+        print("")
+        print(f"  {'sigma (eV)':>12}  {'N_F (states/eV/spin)':>20}  {'N_F (states/Ry/spin)':>20}  {'W(0,0) (eV)':>14}  {'mu':>10}  {'mu rescaled':>14}")
+        print("  " + "-" * 80)
+        for s, nf, nf_ry, w00, mu, mu_resc in zip(sigma_values, Nf_all, Nf_all_Ry, W_00_all, mu_values, mu_rescaled):
+            print(f"  {s:>12.4f}  {nf:>20.6f}  {nf_ry:>20.6f}  {w00:>14.6f}  {mu:>10.6f}  {mu_resc:>14.6f}")
+        print("")
+
+        # Write to file
+        out_file = "mu_results_rescaled.dat"
+        with open(out_file, 'w') as f:
+            f.write(f"# Ef = {Ef} eV\n")
+            f.write(f"# nef not provided; mu_rescaled column filled with -1.0\n")
+            f.write(f"# {'sigma (eV)':>12}  {'N_F (states/eV/spin)':>20}  {'N_F (states/Ry/spin)':>20}  {'W(0,0) (eV)':>14}  {'mu':>10}  {'mu rescaled':>14}\n")
+            for s, nf, nf_ry, w00, mu, mu_resc in zip(sigma_values, Nf_all, Nf_all_Ry, W_00_all, mu_values, mu_rescaled):
+                f.write(f"  {s:>12.4f}  {nf:>20.6f}  {nf_ry:>20.6f}  {w00:>14.6f}  {mu:>10.6f}  {mu_resc:>14.6f}\n")
+
+
 
 
 if __name__ == "__main__":
