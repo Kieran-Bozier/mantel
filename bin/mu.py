@@ -220,7 +220,7 @@ def main():
         print("")
 
         # Write to file
-        out_file = "mu_results_rescaled.dat"
+        out_file = "mu_results.dat"
         with open(out_file, 'w') as f:
             f.write(f"# Ef = {Ef} eV\n")
             f.write(f"# nef = {nef} states/Ry/spin\n")
@@ -243,7 +243,7 @@ def main():
         print("")
 
         # Write to file
-        out_file = "mu_results_rescaled.dat"
+        out_file = "mu_results.dat"
         with open(out_file, 'w') as f:
             f.write(f"# Ef = {Ef} eV\n")
             f.write(f"# nef not provided; mu_rescaled column filled with -1.0\n")
