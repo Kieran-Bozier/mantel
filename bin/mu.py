@@ -220,6 +220,6 @@ def main():
     print(f"Results written to {out_file}")
 
 
-
-
+if __name__ == "__main__":
+    main()
 
