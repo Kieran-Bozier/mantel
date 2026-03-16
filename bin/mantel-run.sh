@@ -8,7 +8,8 @@
 #         (3)    Runs mantel.x to compute the W_nkmp                                         #
 #         (4)    Runs bin_converter.py to convert .bin to .npy for Python post-processing    #
 #         (5)    Runs W_ee.py to compute isoenergy average                                   #
-#         (6)    Runs plotter.py to plot the final W_ee and DOS results                      #
+#         (6)    Runs mu.py to compute mu values vs sigma                                    #
+#         (7)    Runs plotter.py to plot the final W_ee and DOS results                      #
 ##############################################################################################
 
 # ----------   Helpers   ----------
@@ -69,7 +70,7 @@ timestamp() {
 }
 
 #Keep track of steop number and timings
-STEP=0; TOTAL=6; STEP_START=0
+STEP=0; TOTAL=7; STEP_START=0
 step() {
     STEP=$((STEP + 1))
     STEP_START=$SECONDS
@@ -154,7 +155,7 @@ RUN_START=$SECONDS
 
 # ----------   Pre-flight checks   ----------
 #Check the commands exist
-for cmd in wfc2bin mantel.x prepare_yambo.py bin_converter.py W_ee.py plotter.py; do
+for cmd in wfc2bin mantel.x prepare_yambo.py bin_converter.py W_ee.py mu.py plotter.py; do
     command -v "$cmd" &>/dev/null || fail "'$cmd' not found in PATH."
 done
 
@@ -217,6 +218,12 @@ Ef=$(grep "Fermi" "${seed}.scf.out" | awk '{print $5}')
 echo "[$(timestamp)] Fermi energy: ${Ef} eV"
 W_ee.py "${seed}_yambo.nscf.out" "${seed}.bands.out" "${Ef}" \
     --sigma 0.8 --numE 200 --minE "-20" --maxE 20 --nmin "$in_min" || fail "W_ee.py failed."
+step_done
+
+# mu.py
+step "mu"
+mu.py "${seed}_yambo.nscf.out" "${seed}.bands.out" "${Ef}" \
+    0.1 2.0 20 --nmin "$in_min" || fail "mu.py failed."
 step_done
 
 # plotter.py
