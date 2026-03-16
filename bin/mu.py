@@ -201,7 +201,7 @@ def main():
     E_kn_subset = band_energies[ik_idx[:, None], in_idx[None, :] + n_min - 1] - Ef
     W_00_all_unnorm = calculate_W00_unnorm(sigma_values, E_kn_subset, q_weights)
     Nf_all = np.array([calculate_gaussian_Nf(E_kn_subset, s) for s in sigma_values])
-    W_00_all = W_00_all_unnom / Nf_all**2
+    W_00_all = W_00_all_unnorm / Nf_all**2
     mu_values = W_00_all * Nf_all
 
     # Print table to stdout
