@@ -7,8 +7,28 @@
 import argparse
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#non-interactive mode
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+#Try importing scienceplots for prettier figures
+try:
+    import scienceplots
+    plt.style.use('science')
+except ImportError:
+    pass
+
+#Global parameters for font sizes
+plt.rc('axes', titlesize=12)     # Fontsize of the axes title
+plt.rc('axes', labelsize=10)     # Fontsize of the x and y labels
+plt.rc('xtick', labelsize=8)    # Fontsize of the x tick labels
+plt.rc('ytick', labelsize=8)    # Fontsize of the y tick labels
+plt.rc('legend', fontsize=8)    # Legend fontsize
+
+#Fix issue of colourbar rescaling plot size
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
 
 def tetra_dos(dosdat_file):
     """
@@ -65,10 +85,10 @@ def main():
     
     if args.dosdat is None:
         print("Using DOS from dos_raw.npy file")
-        fig, ax = plt.subplots(2,2, figsize=(10,10))
+        fig, ax = plt.subplots(2,2, figsize=(6,6))
     else:
         print("Using both DOS from dos_raw and .dos.dat file for rescaling")
-        fig, ax = plt.subplots(2,3, figsize=(15,10))
+        fig, ax = plt.subplots(2,3, figsize=(9,6))
         
         tetra_energy_grid, tetra_dos_values, Ef = tetra_dos(args.dosdat)
         tetra_energy_grid = tetra_energy_grid - Ef              # shift to E-Ef
@@ -131,7 +151,7 @@ def main():
         ax[0,2].set_title(r"$\frac{1}{TetraDOS(E) \cdot TetraDOS(E')}$")
 
     ####################
-    # plot W(E,E')
+    # plot W(E,E'), bottom left
     vmax = np.percentile(W_ee[emin_idx:emax_idx , emin_idx:emax_idx], 98)
     im2 = ax[1,0].imshow(
         W_ee[emin_idx:emax_idx , emin_idx:emax_idx],
@@ -144,7 +164,12 @@ def main():
     )
     ax[1,0].set_xlabel(r"$E-E_F$ (eV)")
     ax[1,0].set_ylabel(r"$E'-E_F$ (eV)")
-    ax[1,0].set_title(r"$W(E,E')$ raw (eV)")
+    ax[1,0].set_title(r"Unnormalised $W(E,E')$ (eV)")
+
+    #Add colourbar
+    divider = make_axes_locatable(ax[1,0])
+    cax = divider.append_axes("right", size="5%", pad=0.1)
+    cbar = plt.colorbar(im2, cax=cax)
 
     # plot W(E,E') * (1 / dos outer product)
     # Inverse dos map alread right size
@@ -163,7 +188,9 @@ def main():
     ax[1,1].set_ylabel(r"$E'-E_F$ (eV)")
     ax[1,1].set_title(r"$W(E,E') \cdot \frac{1}{DOS(E) \cdot DOS(E')}$")
     ####    colourbar    ####
-    cbar = plt.colorbar(im3, ax=ax[1,1])
+    divider = make_axes_locatable(ax[1,1])
+    cax = divider.append_axes("right", size="5%", pad=0.1)
+    cbar = plt.colorbar(im3, cax=cax)
     
 
 
@@ -186,22 +213,34 @@ def main():
         cbar = plt.colorbar(im3, ax=ax[1,2])
 
 
-
+    #Prevent text overlapping
+    plt.tight_layout(w_pad=2.0, h_pad=1.0) 
     plt.savefig(f"{args.seed}_W_ee_plots.png", dpi=300)
 
-    #Now also plot the diagonal
-    fig, ax2 = plt.subplots(figsize=(8,6))
+
+    #####################################################################
+    #                       Plot the diagonal W(E,E)                    #
+    #####################################################################
+    fig, ax2 = plt.subplots(figsize=(6,4))
     ax2.set_xlim(float(args.emin), float(args.emax))
+    #If tetra dos given plot this too
     if args.dosdat:
         diag_W = np.diagonal(W_tetra_weighted)
         ax2.plot(energy_grid[emin_idx:emax_idx], diag_W, label="tetrahedra")
+
     ax2.set_xlabel(r"$E-E_F$ (eV)")
     ax2.set_ylabel(r"$W(E,E)$ (eV)")
     ax2.set_title("Diagonal of W(E,E')")
 
+    #plot the gaussian smearing result
     diag_W = np.diagonal(W_weighted)
+
+    #Fill masked values with zero 
+    if np.ma.is_masked(diag_W):
+        diag_W = diag_W.filled(0)
+    
     ax2.set_ylim(top=np.max(diag_W) * 1.1, bottom=0)
-    ax2.plot(energy_grid[emin_idx:emax_idx], diag_W, linestyle='--', label="gaussian")
+    ax2.plot(energy_grid[emin_idx:emax_idx], diag_W, linestyle='-', label="Gaussian Smearing")
 
     ax2.legend()
 
@@ -214,7 +253,7 @@ def main():
 
 
     # Do a bespoke plot of just the W_ee final result
-    fig, ax3 = plt.subplots(figsize=(8,6))
+    fig, ax3 = plt.subplots(figsize=(6,4))
     vmax = np.percentile(W_weighted.compressed(), 98)
     im_final = ax3.imshow(
         W_weighted,
@@ -231,7 +270,7 @@ def main():
     cbar = plt.colorbar(im_final, ax=ax3)
     plt.savefig(f"{args.seed}_W_ee_final.pdf", dpi=300)
 
-    
+    plt.show()    
     
 
 
