@@ -107,7 +107,7 @@ def main():
 
     if args.dosdat is not None:
         #plot the tetra dos too
-        ax[0,0].plot(energy_grid[emin_idx:emax_idx], tetra_dos_interpolated[emin_idx:emax_idx], linestyle='--', label='Tetra DOS')
+        ax[0,0].plot(energy_grid[emin_idx:emax_idx], tetra_dos_interpolated[emin_idx:emax_idx], linestyle='-', label='Tetra DOS')
     ax[0,0].legend()
 
     # plot 1 / dos outer product. Apply mask to remove infinites
