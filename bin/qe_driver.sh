@@ -120,7 +120,7 @@ build_bands() {
     fi
 
     sed -i '/^K_POINTS/{N;d;}' ${seed}.bands.in
-    kmesh.pl ${kgrid} ${kgrid} ${kgrid} >> ${seed}.bands.in
+    kmesh.pl ${kgrid} >> ${seed}.bands.in
 }
 
 
