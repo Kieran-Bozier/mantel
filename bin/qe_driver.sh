@@ -120,7 +120,7 @@ build_bands() {
     fi
 
     sed -i '/^K_POINTS/{N;d;}' ${seed}.bands.in
-    kmesh.pl ${kgrid} >> ${seed}.bands.in
+    kmesh.pl "${kgrid}" >> ${seed}.bands.in
 }
 
 
@@ -134,7 +134,7 @@ grep -q "JOB DONE." ${seed}.scf.out || { echo "Error: SCF calculation failed"; e
 log "SCF calculation completed."
 
 #Build the bands file and run bands calculation
-build_bands ${seed} ${kgrid}
+build_bands "${seed}" "${kgrid}"
 log "Starting Bands calculation..."
 mpirun -n ${mpinp} pw.x -in ${seed}.bands.in > ${seed}.bands.out
 grep -q "JOB DONE." ${seed}.bands.out || { echo "Error: Bands calculation failed"; exit 1; }
