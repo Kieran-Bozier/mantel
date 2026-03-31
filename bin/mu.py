@@ -7,6 +7,7 @@
 ###################################################
 import numpy as np
 import argparse
+import re 
 import time
 from tqdm import tqdm
 
@@ -31,7 +32,9 @@ def readBandEnergies(bands_file):
                 if current_band: band_energies.append(current_band); current_band = []
                 continue
             if line.strip() == "": continue
-            energies = [float(e) for e in line.strip().split()]
+            #energies = [float(e) for e in line.strip().split()]
+            # The regex looks for an optional +/-, followed by digits and a decimal point
+            energies = [float(e) for e in re.findall(r"[-+]?\d*\.\d+|\d+", line)]
             current_band.extend(energies)
     if current_band: band_energies.append(current_band)
     return np.array(band_energies)

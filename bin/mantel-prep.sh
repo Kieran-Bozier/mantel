@@ -198,6 +198,7 @@ RUN_START=$SECONDS
 step "QE (SCF + bands)"
 qe_args=(-n "$num_np")
 [ -n "$nbnd" ] && qe_args+=(--nbnd "$nbnd")
+[ -n "$wfc_dir" ] && qe_args+=(-d "$wfc_dir")
 qe_driver.sh "${qe_args[@]}" "$seed" "$qe_kgrid" || fail "qe_driver.sh failed."
 step_done
 
