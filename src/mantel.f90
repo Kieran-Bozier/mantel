@@ -4,7 +4,7 @@ program mantel
     !> in the Bloch basis using FFTs and a padded dielectric matrix.
     
     use precision,              only: dp
-    use read_input,             only: read_stdin, read_lattice_vectors, wfc_dir, in_min, in_max, num_electrons
+    use read_input,             only: read_stdin, read_lattice_vectors, wfc_dir, in_min, in_max, num_electrons, iq_min, iq_max
     use array_io,               only: load_array, save_array
     use write_data,             only: write_W
     use precompute,             only: precomputeVol_au3, precomputeReciprocalLattice, &
@@ -146,6 +146,11 @@ program mantel
     call load_array("epsm1_unpadded.bin", epsm1_unpadded)
     call load_array("yambo_Gs.bin", yambo_Gs)
     num_q = size(yambo_q, 2)
+    if (iq_max == -1) iq_max = num_q
+    if (iq_min < 1 .or. iq_max > num_q .or. iq_min > iq_max) then
+        print *, "Error: iq_min/iq_max out of range. num_q = ", num_q
+        error stop
+    end if
 
 
     !> load the k-points
@@ -196,8 +201,10 @@ program mantel
     !> Loop over q points
     call print_section_header("Processing qpoints")
     call print_info_int("Number of q-points               : ", num_q)
+    call print_info_int("Processing from iq               : ", iq_min)
+    call print_info_int("Processing to iq                 : ", iq_max)
 
-    do iq = 1, num_q
+    do iq = iq_min, iq_max
         t_wall_qstart = omp_get_wtime()
 
         q = yambo_q(:, iq)
@@ -340,6 +347,8 @@ contains
         write(*,'(A)') '     num_electrons = <int>         ! number of electrons in the system'
         write(*,'(A)') '     in_min        = <int>         ! lower band index (1-based, inclusive)'
         write(*,'(A)') '     in_max        = <int>         ! upper band index (1-based, inclusive)'
+        write(*,'(A)') '     iq_min        = <int>         ! first q-point to process (default: 1)'
+        write(*,'(A)') '     iq_max        = <int>         ! last q-point to process (default: all)'
         write(*,'(A)') '  /'
         write(*,'(A)') '  CELL_PARAMETERS bohr|angstrom'
         write(*,'(A)') '    a1_x  a1_y  a1_z'

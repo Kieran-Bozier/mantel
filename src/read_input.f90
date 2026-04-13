@@ -11,6 +11,7 @@ module read_input
     character(len=1024)             :: wfc_dir
     integer                         :: num_electrons
     integer                         :: in_min, in_max
+    integer                         :: iq_min = 1, iq_max = -1
 
     !> Dummy variables to absorb &qe keys that mantel.x doesn't use
     character(len=64)               :: qe_kgrid
@@ -18,7 +19,7 @@ module read_input
 
     !> Namelist groups
     namelist /qe/ wfc_dir, qe_kgrid, nbnd
-    namelist /mantel/ num_electrons, in_min, in_max
+    namelist /mantel/ num_electrons, in_min, in_max, iq_min, iq_max
 
 
 contains
