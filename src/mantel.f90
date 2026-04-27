@@ -4,12 +4,13 @@ program mantel
     !> in the Bloch basis using FFTs and a padded dielectric matrix.
     
     use precision,              only: dp
-    use read_input,             only: read_stdin, read_lattice_vectors, wfc_dir, in_min, in_max, num_electrons, iq_min, iq_max
+    use read_input,             only: read_stdin, read_lattice_vectors, wfc_dir, in_min, in_max, num_electrons, iq_min, iq_max, &
+                                    qtf_method, qtf_fit_nq
     use array_io,               only: load_array, save_array
     use write_data,             only: write_W
     use precompute,             only: precomputeVol_au3, precomputeReciprocalLattice, &
                                     precomputeCartesianG, precompute_TF_wavevector, &
-                                    precompute_zero_G_idx
+                                    precompute_TF_wavevector_fit, precompute_zero_G_idx
     use epsm1,                  only: pad_epsm1
     use k_mapping,              only: batch_map_k_via_frac
     use g_mapping,              only: double_g_mapping
@@ -133,10 +134,8 @@ program mantel
     vol_au3     = precomputeVol_au3(lattice_vectors_bohr)
     recip_lat   = precomputeReciprocalLattice(lattice_vectors_bohr)
     G_vec_cart  = precomputeCartesianG(G_vec_crys, recip_lat)
-    q_TF       = precompute_TF_wavevector(num_electrons, vol_au3)
     zero_G_idx = precompute_zero_G_idx(G_vec_crys)
     call print_info_real("Volume (au^3)                     : ", vol_au3)
-    call print_info_real("Thomas-Fermi q_TF (au^-1)         : ", q_TF)
     call print_matrix("Reciprocal lattice vectors (au^-1)  ", transpose(recip_lat))
 
 
@@ -151,6 +150,14 @@ program mantel
         print *, "Error: iq_min/iq_max out of range. num_q = ", num_q
         error stop
     end if
+
+    !> Thomas-Fermi wavevector
+    if (trim(qtf_method) == "fit") then
+        q_TF = precompute_TF_wavevector_fit(epsm1_unpadded, yambo_q, qtf_fit_nq)
+    else
+        q_TF = precompute_TF_wavevector(num_electrons, vol_au3)
+    end if
+    call print_info_real("Thomas-Fermi q_TF (au^-1)         : ", q_TF)
 
 
     !> load the k-points

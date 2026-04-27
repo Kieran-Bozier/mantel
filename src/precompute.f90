@@ -64,6 +64,8 @@ contains
     end function precomputeCartesianG
 
     function precompute_TF_wavevector(num_electrons, volume_au3) result(q_TF)
+        !> Calculates the TF wavevector based on number of electrons
+        !> Simpler but often very poor approximation
         integer, intent(in) :: num_electrons
         real(dp), intent(in) :: volume_au3
         real(dp) :: q_TF
@@ -90,6 +92,105 @@ contains
         q_TF = sqrt(4.0_dp * k_F / pi)
     
     end function precompute_TF_wavevector
+
+    function precompute_TF_wavevector_fit(epsm1_unpadded, yambo_q, nq_fit) result(q_TF)
+        ! Gauss-Newton NLS: minimise sum_i (eps_inv_i - x_i/(x_i+c))^2 over c = q_TF^2.
+        ! f(x,c) = x/(x+c),  J_i = df/dc = -x_i/(x_i+c)^2
+        ! S'  = -2 * sum((y-f)*J),  S'' ~ 2*sum(J^2)  [Gauss-Newton]
+        complex(dp), intent(in) :: epsm1_unpadded(:,:,:)   ! (numYG, numYG, num_q)
+        real(dp),    intent(in) :: yambo_q(:,:)             ! (3, num_q)
+        integer,     intent(in) :: nq_fit
+        real(dp) :: q_TF
+
+        integer,  parameter :: max_iter = 1000
+        real(dp), parameter :: tol = 1.0e-8_dp
+
+        integer  :: num_q, i, j, min_idx, n_selected, iter
+        real(dp) :: c, c_old, s_prime, s_pprime, f_i, jac_i, x_i, y_i
+        real(dp), allocatable :: q_mag2(:), q_mag2_sorted(:), x_fit(:), y_fit(:)
+        real(dp) :: current_q_mag2
+        integer,  allocatable :: order(:)
+        real(dp) :: tmp_mag
+        integer  :: tmp_idx
+
+        !> Magnitude and order of q-points
+        num_q = size(yambo_q, 2)
+        allocate(q_mag2(num_q), order(num_q))
+        do i = 1, num_q
+            q_mag2(i) = dot_product(yambo_q(:,i), yambo_q(:,i))
+            order(i)  = i
+        end do
+
+        !> Check input
+        if (nq_fit > num_q - 1) then
+            print *, "Warning: precompute_TF_wavevector_fit: nq_fit exceeds available non-zero q-points; returning 0"
+            q_TF = 0.0_dp
+            return
+        end if
+
+        !> index-sort - builds a sorted list of q_mag2 and corresponding order, using insertion sort for simplicity
+        q_mag2_sorted = q_mag2  
+        do i=2, num_q 
+            current_q_mag2 = q_mag2_sorted(i)
+            !> We check the value to the left of current idx to see if should swap
+            j = i - 1
+            do while (j >= 1)
+                !> We check the value to the left of current idx to see if should swap
+                if (q_mag2_sorted(j) <= current_q_mag2) exit 
+
+                !> Else shift the larger value to the right
+                q_mag2_sorted(j+1) = q_mag2_sorted(j)
+                order(j+1) = order(j) 
+                j = j-1
+            end do 
+            !> Insert the current value into the correct position
+            q_mag2_sorted(j+1) = current_q_mag2
+            order(j+1) = i
+        end do
+            
+        !> Use i+1 to skip the zero point 
+        allocate(x_fit(nq_fit), y_fit(nq_fit))
+        do i = 1, nq_fit      
+            x_fit(i) = q_mag2_sorted(i+1)
+            y_fit(i) = real(epsm1_unpadded(1, 1, order(i+1)), kind=dp)
+
+            if (x_fit(i) < tiny(1.0_dp)) then
+                print *, "Warning: precompute_TF_wavevector_fit: zero-magnitude q-point in fit set; returning 0"
+                q_TF = 0.0_dp
+                return
+            end if
+
+        end do
+
+
+        ! Initial guess from first point: c = x*(1/y - 1)
+        c = x_fit(1) * (1.0_dp / y_fit(1) - 1.0_dp)
+
+        ! Gauss-Newton iterations
+        do iter = 1, max_iter
+            c_old    = c
+            s_prime  = 0.0_dp
+            s_pprime = 0.0_dp
+            do i = 1, nq_fit
+                x_i      = x_fit(i)
+                y_i      = y_fit(i)
+                f_i      = x_i / (x_i + c)
+                jac_i    = -x_i / (x_i + c)**2
+                s_prime  = s_prime  - 2.0_dp * (y_i - f_i) * jac_i
+                s_pprime = s_pprime + 2.0_dp * jac_i**2
+            end do
+            c = c - s_prime / s_pprime
+            if (abs(c - c_old) < tol) exit
+        end do
+
+        if (c <= 0.0_dp) then
+            print *, "Warning: precompute_TF_wavevector_fit: fit converged to non-positive q_TF^2; returning 0"
+            q_TF = 0.0_dp
+            return
+        end if
+
+        q_TF = sqrt(c)
+    end function precompute_TF_wavevector_fit
 
     function precompute_zero_G_idx(G_vec_crys) result(zero_G_idx)
         integer, intent(in)         :: G_vec_crys(:, :)

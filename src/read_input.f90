@@ -12,6 +12,8 @@ module read_input
     integer                         :: num_electrons
     integer                         :: in_min, in_max
     integer                         :: iq_min = 1, iq_max = -1
+    character(len=16)               :: qtf_method = "electrons"
+    integer                         :: qtf_fit_nq = 3
 
     !> Dummy variables to absorb &qe keys that mantel.x doesn't use
     character(len=64)               :: qe_kgrid
@@ -19,7 +21,7 @@ module read_input
 
     !> Namelist groups
     namelist /qe/ wfc_dir, qe_kgrid, nbnd
-    namelist /mantel/ num_electrons, in_min, in_max, iq_min, iq_max
+    namelist /mantel/ num_electrons, in_min, in_max, iq_min, iq_max, qtf_method, qtf_fit_nq
 
 
 contains
