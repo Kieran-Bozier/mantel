@@ -152,7 +152,8 @@ contains
         allocate(x_fit(nq_fit), y_fit(nq_fit))
         do i = 1, nq_fit      
             x_fit(i) = q_mag2_sorted(i+1)
-            y_fit(i) = real(epsm1_unpadded(1, 1, order(i+1)), kind=dp)
+            !> 1 included because "epsm1" is actually X from yambopy
+            y_fit(i) = 1 + real(epsm1_unpadded(1, 1, order(i+1)), kind=dp)
 
             if (x_fit(i) < tiny(1.0_dp)) then
                 print *, "Warning: precompute_TF_wavevector_fit: zero-magnitude q-point in fit set; returning 0"

@@ -26,10 +26,10 @@ contains
     subroutine print_banner
         !> Prints the program banner
         write(stdout, *)
-        write(stdout, '(5x,"                   ▗▄▄▖▗▖ ▗▖▗▖  ▗▖▗▄▄▄ ▗▄▄▄ ")')
-        write(stdout, '(5x,"                  ▐▌   ▐▌▗▞▘ ▝▚▞▘ ▐▌  █▐▌  █")')
-        write(stdout, '(5x,"                   ▝▀▚▖▐▛▚▖   ▐▌  ▐▌  █▐▌  █")')
-        write(stdout, '(5x,"                  ▗▄▄▞▘▐▌ ▐▌  ▐▌  ▐▙▄▄▀▐▙▄▄▀")')
+        write(stdout, '(5x,"                   ▗▖  ▗▖▗▄▄▄▖▗▖ ▗▖▗▄▄▄▖▗▄▄▄▖▗▖   ")')
+        write(stdout, '(5x,"                   ▐▛▚▞▜▌▐▌ ▐▌▐▛▖▐▌ ▐▌  ▐▌   ▐▌   ")')
+        write(stdout, '(5x,"                   ▐▌▝▘▐▌▐▛▀▜▌▐▌▝▟▌ ▐▌  ▐▛▀▘ ▐▌   ")')
+        write(stdout, '(5x,"                   ▐▌  ▐▌▐▌ ▐▌▐▌ ▐▌ ▐▌  ▐▙▄▄▖▐▙▄▄▖")')
         write(stdout, '(5x,"     =====================================================")')
         write(stdout, '(5x, "                                           ")')
         write(stdout, '(5x,"                   Bloch basis evaluation of the    ")')
