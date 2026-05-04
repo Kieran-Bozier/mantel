@@ -99,8 +99,6 @@ contains
 
 
 
-
-
     !> Simple timer report
     subroutine print_clock(label, start_time, end_time)
         character(len=*), intent(in) :: label
@@ -109,4 +107,74 @@ contains
         flush(stdout)
     end subroutine print_clock
 
+
+    !> Obtain and print memory estimates
+    subroutine print_memory_estimate(nx, ny, nz, numBands, numK, numG, numYamboG, numq, numthreads)
+        integer, intent(in)     :: nx, ny, nz, numBands, numK, numG, numYamboG, numq, numthreads
+        real(dp)                :: mem_per_thread, global_mem, total_mem
+
+        !> Global arrays mem
+        real(dp)                :: batched_c_nk_mem, epsm1_unpadded_mem, epsm1_padded_mem, &
+                                    Vc_screened_mem, W_mem, G_vec_cart_mem, k_cart_mem, &
+                                    yambo_q_mem, G_vec_crys_mem, yambo_Gs_mem, gmap_mem, ikp_arr_mem
+
+        !> per thread arrays mem
+        integer                 :: double_nx, double_ny, double_nz
+        real(dp)                :: c_nk_real_store_mem, c_mp_real_store_mem, rho_real_mem, rho_G_double_mem, &
+                                    umklapp_phase_factor_mem, rho_batch_mem, res_batch_mem, W_k_mem
+
+        character(len=24)       :: global_top_name, thread_top_name
+        real(dp)                :: global_top_val, thread_top_val
+                    
+        !> Estimate memory usage (in GB)
+        
+        !> GLOBAL ARRAYS
+        !> Complex arrays
+        batched_c_nk_mem = real(nx*ny*nz*numBands*numK, dp) * 16.0d0 / 1.0d9
+        epsm1_unpadded_mem = real((numYamboG**2)*numq, dp) * 16.0d0 / 1.0d9
+        epsm1_padded_mem = real((numG**2), dp) * 16.0d0 / 1.0d9 
+        Vc_screened_mem = real((numG**2), dp) * 16.0d0 / 1.0d9
+        W_mem = real((numG**2)*numq, dp) * 16.0d0 / 1.0d9
+        !> Real arrays
+        G_vec_cart_mem = real(numG*3, dp) * 8.0d0 / 1.0d9
+        k_cart_mem = real(numK*3, dp) * 8.0d0 / 1.0d9
+        yambo_q_mem = real(numq*3, dp) * 8.0d0 / 1.0d9
+
+        !> For now we'll neglect those integer arrays since small
+
+
+        !> PER THREAD ARRAYS 
+        !> Complex arrays
+        double_nx = 2*nx
+        double_ny = 2*ny
+        double_nz = 2*nz
+        c_nk_real_store_mem = real(double_nx*double_ny*double_nz*numBands, dp) * 16.0d0 / 1.0d9
+        c_mp_real_store_mem = real(double_nx*double_ny*double_nz*numBands, dp) * 16.0d0 / 1.0d9
+        rho_real_mem = real(double_nx*double_ny*double_nz, dp) * 16.0d0 / 1.0d9
+        rho_G_double_mem = real((numG**2), dp) * 16.0d0 / 1.0d9
+        umklapp_phase_factor_mem = real(numq*numG, dp) * 16.0d0 / 1.0d9
+        rho_batch_mem = real(numG * numBands**2 , dp) * 16.0d0 / 1.0d9
+        res_batch_mem = real(numG * numBands**2 , dp) * 16.0d0 / 1.0d9
+        W_k_mem = real(numBands**2, dp) * 16.0d0 / 1.0d9
+
+        !> Total memory per thread
+        mem_per_thread = c_nk_real_store_mem + c_mp_real_store_mem + rho_real_mem + rho_G_double_mem + &
+                         umklapp_phase_factor_mem + rho_batch_mem + res_batch_mem + W_k_mem
+
+        !> Total global memory
+        global_mem = batched_c_nk_mem + epsm1_unpadded_mem + epsm1_padded_mem + Vc_screened_mem + W_mem + &
+                     G_vec_cart_mem + k_cart_mem + yambo_q_mem
+        
+        !> Total memory (global + per thread * numthreads)
+        total_mem = global_mem + mem_per_thread * real(numthreads, dp)
+
+        write(stdout, fmt_divider)
+        write(stdout, '(5x,A30,2x,F10.4,A)') 'Global memory:',     global_mem,     ' GB'
+        write(stdout, '(5x,A30,2x,F10.4,A)') 'Memory per thread:', mem_per_thread, ' GB'
+        write(stdout, '(5x,A30,2x,F10.4,A)') 'Total memory:',      total_mem,      ' GB'
+        write(stdout, fmt_divider)
+        flush(stdout)
+
+    end subroutine print_memory_estimate
+        
 end module output

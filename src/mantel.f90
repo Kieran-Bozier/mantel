@@ -189,7 +189,9 @@ program mantel
     call print_info_int("Number of bands per k-point              : ", in_max - in_min +1)      
     
 
-
+    call print_section_header("Memory estimate")
+    call print_memory_estimate(wfc_fft_grid(1), wfc_fft_grid(2), wfc_fft_grid(3), numBands, numK, numG, size(yambo_Gs,2),&
+                                 num_q, omp_get_max_threads())    
 
 
 
