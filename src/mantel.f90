@@ -18,7 +18,7 @@ program mantel
     use W_nkmp,                 only: initialise_fft_plans, cleanup_fft_plans, &
                                       build_Vc_screened, get_umklapp_phase_factor, W_nkmp_all_n_all_m_opt
     use output,                 only: print_banner, print_clock, print_section_header, print_matrix, print_info_int, &
-                                      print_info_real, print_msg, print_int_vec
+                                      print_info_real, print_msg, print_int_vec, print_memory_estimate
     use omp_lib
     implicit none
 
