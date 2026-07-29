@@ -79,7 +79,7 @@ subroutine load_array_1d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 1D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -87,7 +87,7 @@ subroutine load_array_1d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected real array (type 2) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) dims
@@ -131,7 +131,7 @@ subroutine load_array_2d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 2D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -139,7 +139,7 @@ subroutine load_array_2d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected real array (type 2) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -185,7 +185,7 @@ subroutine load_array_3d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 3D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -193,7 +193,7 @@ subroutine load_array_3d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected real array (type 2) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -241,7 +241,7 @@ subroutine load_array_4d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 4D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -249,7 +249,7 @@ subroutine load_array_4d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected real array (type 2) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -298,7 +298,7 @@ subroutine load_complex_array_1d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 1D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -306,7 +306,7 @@ subroutine load_complex_array_1d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected complex array (type 3) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) dims
@@ -350,7 +350,7 @@ subroutine load_complex_array_2d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 2D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -358,7 +358,7 @@ subroutine load_complex_array_2d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected complex array (type 3) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -404,7 +404,7 @@ subroutine load_complex_array_3d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 3D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -412,7 +412,7 @@ subroutine load_complex_array_3d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected complex array (type 3) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -459,7 +459,7 @@ subroutine load_complex_array_4d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 4D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -467,7 +467,7 @@ subroutine load_complex_array_4d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected complex array (type 3) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -515,7 +515,7 @@ subroutine load_int_array_1d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 1D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -523,7 +523,7 @@ subroutine load_int_array_1d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected integer array (type 1) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) dims
@@ -567,7 +567,7 @@ subroutine load_int_array_2d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 2D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -575,7 +575,7 @@ subroutine load_int_array_2d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected integer array (type 1) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -621,7 +621,7 @@ subroutine load_int_array_3d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 3D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -629,7 +629,7 @@ subroutine load_int_array_3d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected integer array (type 1) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims
@@ -676,7 +676,7 @@ subroutine load_int_array_4d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected 4D array but file indicates rank ", rank_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
 
     read(unit_num) type_id
@@ -684,7 +684,7 @@ subroutine load_int_array_4d(filename, array)
         print *, "Problems loading ", filename 
         print *, "Error: Expected integer array (type 1) but file indicates type ", type_id
         close(unit_num)
-        return
+        error stop "Fatal error loading array"
     end if
     
     read(unit_num) dims

@@ -3,6 +3,8 @@ module W_nkmp
     !>      This module is repsonsible for computing the W_nkmp
     !>      matrix elements for a single k and q. All possible 
     !>      initial (n) and final (m) bands are considered
+    !>
+
 
     use, intrinsic :: iso_c_binding 
     use precision, only: dp
@@ -58,6 +60,9 @@ contains
                                   g_map_i, g_map_j, g_map_k)
         !> Optimise the rho function by taking in the precomputed wavfunctions on real grid
         !> This reduces the number of FFT calls required
+        !>
+        !> Be aware that this is NOT a FT of the density/overlap, but rather in inverse FT
+        !> because the berkeleyGW code uses the e^{+i G.r} convention
         implicit none
         !---- Arguments ----
         complex(dp), intent(in)         :: c_nk_real_double(:,:,:)
