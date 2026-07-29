@@ -71,6 +71,19 @@ contains
             h = yambo_Gs(1, i)
             k = yambo_Gs(2, i)
             l = yambo_Gs(3, i)
+
+            !> Guard: Check if the requested h,k,l are inside the allocated box
+            if (h < lbound(lookup_array, 1) .or. h > ubound(lookup_array, 1) .or. &
+                k < lbound(lookup_array, 2) .or. k > ubound(lookup_array, 2) .or. &
+                l < lbound(lookup_array, 3) .or. l > ubound(lookup_array, 3)) then
+                        
+                print *, "Error: Yambo requested G-vector (", h, k, l, ")"
+                print *, "This is outside the local wavefunction bounds."
+                print *, "Check that Yambo NGsBlkXs is <= the wfc2bin cutoff."
+                error stop "G-vector mismatch between Yambo and WFC"
+            end if
+
+
             idx = lookup_array(h, k, l)
             if (idx == 0) then
                 print *, "Error: Yambo G-vector (", h, ",", k, ",", l, ") not found in local G-vectors."
