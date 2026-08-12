@@ -7,14 +7,14 @@ set -euo pipefail
 #         and stores them in the final directory (default: WFC)                    #
 ####################################################################################
 
-# --- 1. Default Values ---
+# --- Default Values ---
 mpinp=32           # Default MPI cores
 final_dir="WFC"    # Default output directory
 seed=""            # Seed is empty initially
 kgrid=""           # kgrid is empty initially
 nbnd_override=""   # Optional explicit band count; if unset, uses 1.4 × SCF nbnd
 
-# --- 2. Usage/Help Function ---
+# --- Usage/Help Function ---
 usage() {
     echo "Usage: $0 [OPTIONS] seed kgrid"
     echo ""
@@ -31,7 +31,35 @@ usage() {
     exit 1
 }
 
-# --- 3. Argument Parsing Loop ---
+# --- Safe rm function ---
+safe_rm_outdir() {
+  local dir="$1"
+
+  # Resolve to an absolute path
+  local canon
+  canon="$(readlink -f "$dir" 2>/dev/null)" || canon=""
+
+
+  # Refuse to delete anything dangerous
+  case "$canon" in
+    ""|/|/home|"$HOME"|/tmp|/etc|/usr|/var)
+      echo "ERROR: refusing to delete '${canon}'" >&2
+      return 1 ;;
+  esac
+
+  # Refuse if we're sitting inside it
+  local cwd
+  cwd="$(readlink -f .)"
+  if [ "$cwd" = "$canon" ]; then
+    echo "ERROR: outdir is the working directory" >&2
+    return 1
+  fi
+
+  rm -rf "$canon"
+}
+
+
+# --- Argument Parsing Loop ---
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -n|--np)
@@ -105,7 +133,7 @@ build_bands() {
     fi
 
     cp ${seed}.scf.in ${seed}.bands.in
-    sed -i "s/scf/bands/" ${seed}.bands.in
+    sed -i "/calculation\s*=/s/'scf'/'bands'/" ${seed}.bands.in
 
     #Check if nbnd already set - if not, set it
     if ! grep -q "nbnd" "${seed}.bands.in"; then
@@ -119,13 +147,16 @@ build_bands() {
     echo "Setting verbosity to high for bands calculation"
     fi
 
+    # NB: assumes K_POINTS automatic (2 lines). Crystal/gamma formats
+    # would need a different approach
     sed -i '/^K_POINTS/{N;d;}' ${seed}.bands.in
     kmesh.pl ${kgrid} >> ${seed}.bands.in
 }
 
 
-
+# Outdir can be empty - if so, default to current directory. Otherwise, extract the value from the scf input file.
 outdir=$(grep 'outdir' ${seed}.scf.in | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
+outdir="${outdir:-.}"
 
 #Run SCF calculation
 log "Starting SCF calculation..."
@@ -143,14 +174,14 @@ log "Bands calculation completed."
 #Copy wfc.dat files to final directory
 log "Copying wavefunction files to final directory..."
 mkdir -p ${final_dir}
-rsync -aW --info=stats2 ${outdir}/${seed}.save/ ${final_dir}/
+rsync -aW --info=stats2 "${outdir}/${seed}.save/" "${final_dir}/"
 rm -f ${final_dir}/charge-density.dat
 rm -f ${final_dir}/*.upf
 log "Wavefunction files copied to ${final_dir}."
 
 
 #Ensure the outdir is removed to avoid confusion for later steps
-[ -d "${outdir}" ] && rm -rf "${outdir}"
+safe_rm_outdir "${outdir}" || log "WARNING: outdir cleanup skipped"
 
 log "All done. Total elapsed: $(( SECONDS - t_start ))s"
 

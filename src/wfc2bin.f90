@@ -185,6 +185,7 @@ program wfc2bin
 
     !> cartesian k vectors
     real(dp), allocatable           :: k_cart(:,:)
+    logical, allocatable            :: k_filled(:)
 
     !> Timing
     real(dp)                        :: t_start, t_end, wall_start, wall_end
@@ -218,6 +219,7 @@ program wfc2bin
     print *, "Processing", num_files, "files..."
 
     allocate(k_cart(3, num_files))
+    allocate(k_filled(num_files))
 
     !> Parallel OMP processing
     !$OMP PARALLEL DO DEFAULT(SHARED) &
@@ -230,9 +232,15 @@ program wfc2bin
         write(filename_out, '("ik-", I0, ".bin")') ik
         call write_wfc_bin(filename_out, mill, evc, igwx, G_max, in_min, in_max)
 
+        !> Sanity check on the num files and ik
+        if (ik < 1 .or. ik > num_files) then
+            print *, "Error: ik value out of range for file ", filename_in, ". ik = ", ik
+            stop
+        end if
+
         !> bash lists in lexicographical order, so need to use ik to produce correct ordering
         k_cart(:,ik) = xk
-
+        k_filled(ik) = .true.
 
         !> progress bar
         !$OMP atomic
@@ -246,6 +254,16 @@ program wfc2bin
 
     end do 
     !$OMP END PARALLEL DO
+    
+    !> Check we filled all k_cart entries
+    if (.not. all(k_filled)) then
+        write(*,'(a)') 'ERROR: not all k-point slots were filled. Missing indices:'
+        do i = 1, num_files
+          if (.not. k_filled(i)) write(*,'(2x,i0)') i
+        end do
+        error stop
+    end if
+
     call cpu_time(t_end)
     wall_end = omp_get_wtime()
 

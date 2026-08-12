@@ -30,6 +30,34 @@ usage() {
     exit 1
 }
 
+
+# --- Safe rm function ---
+safe_rm_outdir() {
+  local dir="$1"
+
+  # Resolve to an absolute path
+  local canon
+  canon="$(readlink -f "$dir" 2>/dev/null)" || canon=""
+
+  # Refuse to delete anything dangerous
+  case "$canon" in
+    ""|/|/home|"$HOME"|/tmp|/etc|/usr|/var)
+      echo "ERROR: refusing to delete '${canon}'" >&2
+      return 1 ;;
+  esac
+
+  # Refuse if we're sitting inside it
+  local cwd
+  cwd="$(readlink -f .)"
+  if [ "$cwd" = "$canon" ]; then
+    echo "ERROR: outdir is the working directory" >&2
+    return 1
+  fi
+
+  rm -rf "$canon"
+}
+
+
 # ---- 3. Argument Parsing Loop ----
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -139,8 +167,8 @@ build_yambo_nscf(){
     local kgrid=$2
     cp "${seed}_yambo.scf.in" "${seed}_yambo.nscf.in"
 
-    #change calculation
-    sed -i "s/scf/nscf/" "${seed}_yambo.nscf.in"
+    # Change calculation. Use sed address to enforce only on calculation lines
+    sed -i "/calculation\s*=/s/'scf'/'nscf'/" "${seed}_yambo.nscf.in"
 
     #set kgrid
     sed -i "/K_POINTS/{n;s/.*/$kgrid 0 0 0/;}" "${seed}_yambo.nscf.in"
@@ -196,24 +224,26 @@ log "NSCF calculation completed."
 workdir=$(pwd)
 mkdir -p "${final_dir}"
 outdir=$(grep 'outdir' "${seed}_yambo.scf.in" | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
+outdir="${outdir:-.}"
+outdir="$(readlink -f "$outdir")"
 cd "$outdir/${seed}.save/"
 
 log "Initializing Yambo..."
-p2y
+p2y || { echo "Error: p2y conversion failed"; exit 1; }
+[ -d "SAVE" ] || { echo "Error: p2y did not produce SAVE directory"; exit 1; }
 mv SAVE "${workdir}/${final_dir}/SAVE"
 cd "${workdir}/${final_dir}"
 
 log "Running Yambo..."
-yambo
+yambo || { echo "Error: yambo setup failed"; exit 1; }
 
 build_yambo_in "$seed" "$nbnd" "$ngsblk"
 log "Running Yambo RPA screening..."
 mpirun -n ${mpinp} yambo -Input yambo_RPA.in -J RPA
 
 #Ensure outdir is removed to remove confusion for later steps
-outdir=$(grep 'outdir' ${workdir}/${seed}.scf.in | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
-[ -d "${outdir}" ] && rm -rf "${outdir}"
 
+safe_rm_outdir "$outdir" 
 
 
 log "Yambo calculation completed. Total elapsed: $(( SECONDS - t_start ))s"
