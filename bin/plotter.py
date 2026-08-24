@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import matplotlib
 #non-interactive mode
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 #Try importing scienceplots for prettier figures
