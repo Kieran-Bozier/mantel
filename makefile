@@ -3,6 +3,9 @@ VPATH    = src
 BUILD_DIR = build
 BUILD   ?= fast
 
+#Read from here, not from any files
+.PHONY: all clean install
+
 
 # If we have MKL, we default to using this as we get much better performance
 ifdef MKLROOT
@@ -34,7 +37,7 @@ endif
 ifeq ($(BUILD), profile)
     FFLAGS = -O0 -g -pg -Wall -fcheck=all -fopenmp
 else
-    FFLAGS = -Ofast -fopenmp -fbacktrace -march=native -flto -funroll-loops -m64
+    FFLAGS = -O3 -fopenmp -fbacktrace -march=native -flto -funroll-loops 
 endif
 
 
