@@ -8,11 +8,11 @@ module read_input
     implicit none
 
     !> Global variables to be read from the input file
-    character(len=1024)             :: wfc_dir
-    integer                         :: num_electrons
-    integer                         :: in_min, in_max
+    character(len=1024)             :: wfc_dir="./WFC"
+    integer                         :: num_electrons=0
+    integer                         :: in_min=1, in_max=-1
     integer                         :: iq_min = 1, iq_max = -1
-    character(len=16)               :: qtf_method = "electrons"
+    character(len=16)               :: qtf_method = "fit"
     integer                         :: qtf_fit_nq = 3
 
     !> Dummy variables to absorb &qe keys that mantel.x doesn't use
@@ -43,6 +43,19 @@ contains
         if (iostat /= 0) then
             print *, "Error: Failed to read &mantel namelist from standard input."
             print *, "Make sure you are running: mantel.x < input_file > output_file"
+            error stop
+        end if
+
+        !> Validate inputs 
+        if (trim(qtf_method) == 'electrons') then
+            if (num_electrons <= 0) then
+                print *, "Error: qtf_method = 'electrons' requires num_electrons > 0. Got: ", num_electrons
+                error stop
+            end if
+        end if
+        
+        if (in_max < in_min) then
+            print *, "Error: in_max (", in_max, ") must be >= in_min (", in_min, ")"
             error stop
         end if
 
