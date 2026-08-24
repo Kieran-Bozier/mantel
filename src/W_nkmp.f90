@@ -36,7 +36,7 @@ contains
 
         !> TO DO: Double check the ordering of fft_grid_size dimensions 
         fft_bwd_plan = fftw_plan_dft_3d(fft_grid_size(1), fft_grid_size(2), fft_grid_size(3), &
-                                 temp_in, temp_out, FFTW_BACKWARD, FFTW_MEASURE)
+                                 temp_in, temp_out, FFTW_BACKWARD, FFTW_MEASURE+FFTW_UNALIGNED)
         deallocate(temp_in, temp_out)
         
         !update states. stored double dimesnions is global
@@ -392,13 +392,14 @@ contains
         !$OMP END PARALLEL DO
 
         !> Handle the q=0 case
-        if (iq == 1) then
-            
+        if (dot_product(q,q) < epsilon) then  
+
             !> Ensure q_TF is not zero to avoid division by zero
             if (q_TF <= epsilon) then
                 write(stderr, *) &
                     "Error: Thomas-Fermi wavevector q_TF is too small (", q_TF, "). Cannot compute head of Vc_screened."
-                    write(stderr, *) "Please check the num electrons if using qtf_method = 'electrons'"                error stop 1
+                    write(stderr, *) "Please check the num electrons if using qtf_method = 'electrons'"                
+                    error stop 1
             end if
             
             if (zero_G_idx >= 1 .and. zero_G_idx <= numG) then
