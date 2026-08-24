@@ -5,7 +5,7 @@ module W_nkmp
     !>      initial (n) and final (m) bands are considered
     !>
 
-
+    use iso_fortran_env, only: stderr => error_unit
     use, intrinsic :: iso_c_binding 
     use precision, only: dp
     implicit none
@@ -27,13 +27,14 @@ contains
         
         complex(dp), allocatable :: temp_in(:,:,:), temp_out(:,:,:)
 
-        !check if already initialized
+        !>check if already initialized
         if (fft_plans_initialized) call cleanup_fft_plans()
 
-        !create plan
+        !>create plan
         allocate(temp_in(fft_grid_size(1), fft_grid_size(2), fft_grid_size(3)))
         allocate(temp_out(fft_grid_size(1), fft_grid_size(2), fft_grid_size(3)))
 
+        !> TO DO: Double check the ordering of fft_grid_size dimensions 
         fft_bwd_plan = fftw_plan_dft_3d(fft_grid_size(1), fft_grid_size(2), fft_grid_size(3), &
                                  temp_in, temp_out, FFTW_BACKWARD, FFTW_MEASURE)
         deallocate(temp_in, temp_out)
@@ -175,14 +176,12 @@ contains
                         i_in = double_dims(1) - (small_dims(1) - i)
                     end if
 
-                    ! --- Y Dimension Logic ---
                     if (j <= mid(2)) then
                         j_in = j
                     else
                         j_in = double_dims(2) - (small_dims(2) - j)
                     end if
 
-                    ! --- Z Dimension Logic ---
                     if (k <= mid(3)) then
                         k_in = k
                     else
@@ -364,6 +363,9 @@ contains
         numG = size(cartesian_G_vectors, 2)
         allocate(inv_qG(numG))
 
+    
+
+
         !> Calculates inverse norms 1 / |q+G|
         do i = 1, numG
             q_plus_G = q + cartesian_G_vectors(:, i)
@@ -371,6 +373,12 @@ contains
             if (norm_q_plus_G > epsilon ) then
                 inv_qG(i) = 1.0_dp / norm_q_plus_G
             else
+                !> If this happens when not at G=0, then something is likely wrong
+                if (i /= zero_G_idx) then
+                    write(stderr, *) &
+                    "Warning: |q+G| is very small (", norm_q_plus_G, ") for G index ", i, ". This may indicate an issue with the input data."
+                end if
+                
                 inv_qG(i) = 0.0_dp   ! Handle the singularity case
             end if
         end do
@@ -385,6 +393,14 @@ contains
 
         !> Handle the q=0 case
         if (iq == 1) then
+            
+            !> Ensure q_TF is not zero to avoid division by zero
+            if (q_TF <= epsilon) then
+                write(stderr, *) &
+                    "Error: Thomas-Fermi wavevector q_TF is too small (", q_TF, "). Cannot compute head of Vc_screened."
+                    write(stderr, *) "Please check the num electrons if using qtf_method = 'electrons'"                error stop 1
+            end if
+            
             if (zero_G_idx >= 1 .and. zero_G_idx <= numG) then
                 ! Wings -> 0
                 Vc_screened(zero_G_idx, :) = (0.0_dp, 0.0_dp)
@@ -394,7 +410,9 @@ contains
                 Vc_screened(zero_G_idx, zero_G_idx) = &
                     cmplx(four_pi / (q_TF**2), 0.0_dp, dp)
             else
-                 print *, "Warning: zero_G_idx out of bounds in Vc build"
+                 write(stderr, *) &
+                 "Error: zero_G_idx (", zero_G_idx, ") is out of bounds for Vc_screened with numG = ", numG
+                 error stop 1
             end if
         end if
 
