@@ -39,6 +39,21 @@ contains
         end do
 
         close(file_unit)
+
+        !> Add some checks on wavefunctions
+        if (npol /= 1) then
+            print *, "Error: Requires npol=1, but found npol=", npol
+            print *, "Error: Non-collinear / SOC wavefunctions are not supported"
+            print *, "File: ", trim(filename)
+            error stop
+        end if
+
+        if (gamma_only) then
+            print *, "Error: Requires gamma_only=.false., but found gamma_only=.true."
+            print *, "gamma_only=.true. only writes half the G-vectors, which is not supported by mantel.x"
+            error stop
+        end if 
+
     end subroutine read_wfc_dat
 
     
@@ -52,6 +67,17 @@ contains
         complex(dp), allocatable               :: cube_wfc(:,:,:,:)
         integer                                :: nx, ny, nz
         integer                                :: n_bands_out, in, g_idx, gx, gy, gz, gx_wrap, gy_wrap, gz_wrap 
+
+
+        if (in_max > size(evc, 2)) then
+            print *, "Error: in_max (", in_max, ") exceeds number of bands in evc (", size(evc, 2), ")"
+            error stop
+        end if
+
+        if (in_min < 1) then
+            print *, "Error: in_min (", in_min, ") must be >= 1"
+            error stop
+        end if 
 
         !> band range
         n_bands_out = in_max - in_min + 1
