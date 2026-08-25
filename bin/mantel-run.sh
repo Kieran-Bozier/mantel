@@ -176,11 +176,12 @@ python -c "import yambopy" 2>/dev/null || fail "yambopy not found — please act
 
 # wfc2bin
 step "wfc2bin"
-cd "${wfc_dir}" || fail "Could not enter ${wfc_dir}/."
+origin="${PWD}"
+pushd "${wfc_dir}" > /dev/null || fail "Could not enter ${wfc_dir}/."
 wfc2bin "${Gmax}" "${in_min}" "${in_max}" wfc*.dat || fail "wfc2bin failed."
-mv G_vectors.bin ../ || fail "Could not move G_vectors.bin."
-mv cartesian_k.bin ../ || fail "Could not move cartesian_k.bin."
-cd ../ || fail "Could not return from ${wfc_dir}/."
+mv G_vectors.bin "${origin}/" || fail "Could not move G_vectors.bin."
+mv cartesian_k.bin "${origin}/" || fail "Could not move cartesian_k.bin."
+popd > /dev/null || fail "Could not return from ${wfc_dir}/."
 step_done
 
 # Prepare yambo arrays
