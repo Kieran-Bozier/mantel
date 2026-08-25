@@ -67,6 +67,7 @@ contains
         complex(dp), allocatable               :: cube_wfc(:,:,:,:)
         integer                                :: nx, ny, nz
         integer                                :: n_bands_out, in, g_idx, gx, gy, gz, gx_wrap, gy_wrap, gz_wrap 
+        real(dp)                               :: frac
 
 
         if (in_max > size(evc, 2)) then
@@ -108,6 +109,17 @@ contains
             
             end do
         end do 
+
+        !> Check that enough of the norm is carried over into the truncated wavefunction
+        do in = in_min, in_max
+            frac = sum(abs(cube_wfc(:,:,:, in - in_min + 1))**2) &
+                 / sum(abs(evc(:, in))**2)
+            if (frac < 0.999_dp) then
+                write(*,'(a,a,a,i0,a,f10.6)') &
+                    "WARNING [", trim(filename_out), "] band ", in, &
+                    " retained |c|^2 fraction = ", frac
+            end if
+        end do
 
         call save_array(trim(filename_out), cube_wfc)
     end subroutine write_wfc_bin
