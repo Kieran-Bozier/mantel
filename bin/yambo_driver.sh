@@ -219,6 +219,8 @@ log "Starting Yambo NSCF calculation..."
 build_yambo_nscf "$seed" "$kgrid"
 mpirun -n ${mpinp} pw.x < "${seed}_yambo.nscf.in" > "${seed}_yambo.nscf.out"
 grep -q "JOB DONE." "${seed}_yambo.nscf.out" || { echo "Error: NSCF calculation failed"; exit 1; }
+mkdir -p "${workdir}/xml"
+cp "${outdir}/${seed}.save/data-file-schema.xml" "${workdir}/xml/nscf.xml"
 log "NSCF calculation completed."
 
 workdir=$(pwd)

@@ -162,6 +162,7 @@ outdir="${outdir:-.}"
 log "Starting SCF calculation..."
 mpirun -n ${mpinp} pw.x < ${seed}.scf.in > ${seed}.scf.out
 grep -q "JOB DONE." ${seed}.scf.out || { echo "Error: SCF calculation failed"; exit 1; }
+mkdir -p xml && cp "${outdir}/${seed}.save/data-file-schema.xml" xml/scf.xml
 log "SCF calculation completed."
 
 #Build the bands file and run bands calculation
@@ -169,6 +170,7 @@ build_bands "${seed}" "${kgrid}"
 log "Starting Bands calculation..."
 mpirun -n ${mpinp} pw.x -in ${seed}.bands.in > ${seed}.bands.out
 grep -q "JOB DONE." ${seed}.bands.out || { echo "Error: Bands calculation failed"; exit 1; }
+cp "${outdir}/${seed}.save/data-file-schema.xml" xml/bands.xml
 log "Bands calculation completed."
 
 #Copy wfc.dat files to final directory
