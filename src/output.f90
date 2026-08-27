@@ -133,8 +133,8 @@ contains
         batched_c_nk_mem = real(nx*ny*nz*numBands*numK, dp) * 16.0d0 / 1.0d9
         epsm1_unpadded_mem = real((numYamboG**2)*numq, dp) * 16.0d0 / 1.0d9
         epsm1_padded_mem = real((numG**2), dp) * 16.0d0 / 1.0d9 
-        Vc_screened_mem = real((numG**2), dp) * 16.0d0 / 1.0d9
-        W_mem = real((numG**2)*numq, dp) * 16.0d0 / 1.0d9
+        Vc_screened_mem = real(numG, dp)**2 * 16.0d0 / 1.0d9
+        W_mem = real(numG, dp)**2 * real(numq, dp) * 16.0d0 / 1.0d9
         !> Real arrays
         G_vec_cart_mem = real(numG*3, dp) * 8.0d0 / 1.0d9
         k_cart_mem = real(numK*3, dp) * 8.0d0 / 1.0d9

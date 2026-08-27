@@ -211,7 +211,7 @@ contains
 
         if (zero_G_idx == 0) then
             write(*,*) "Error: Gamma point (0,0,0) not found in G-vector list!"
-            stop
+            error stop
         end if
     end function precompute_zero_G_idx
 

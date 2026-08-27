@@ -123,7 +123,8 @@ shift $((OPTIND-1))
 [ -f "$cfg_file" ] || fail "Input file '$cfg_file' not found."
 
 # Derive seed from filename (e.g. Al.mantel.in → Al) unless overridden
-seed="${cfg_file%%.*}"
+seed="$(basename "${cfg_file}")"
+seed="${seed%%.*}"
 [ -n "${cli_seed:-}" ] && seed=$cli_seed
 
 # Read from namelist blocks

@@ -87,7 +87,7 @@ contains
             idx = lookup_array(h, k, l)
             if (idx == 0) then
                 print *, "Error: Yambo G-vector (", h, ",", k, ",", l, ") not found in local G-vectors."
-                stop
+                error stop
             end if
             mapped_indices(i) = idx
         end do
@@ -110,7 +110,7 @@ contains
             print *, "CRITICAL ERROR: padded_mat is too small!"
             print *, "Expected size: ", numG_total, "x", numG_total
             print *, "Actual size:   ", size(padded_mat, 1), "x", size(padded_mat, 2)
-            stop
+            error stop
         end if
         
         n_sub = size(map)

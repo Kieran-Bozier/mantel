@@ -26,6 +26,9 @@ module read_input
 
 contains
     subroutine read_stdin()
+        !> Reads input from standard input
+        !> Note: piped input (cat mantel.in | mantel.x) is not supported
+
         integer                     :: iostat
 
         !> Read &qe block
@@ -56,6 +59,11 @@ contains
         
         if (in_max < in_min) then
             print *, "Error: in_max (", in_max, ") must be >= in_min (", in_min, ")"
+            error stop
+        end if
+
+        if (in_min < 1) then
+            print *, "Error: in_min must be >= 1. Got: ", in_min
             error stop
         end if
 

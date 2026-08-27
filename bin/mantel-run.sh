@@ -107,7 +107,8 @@ shift $((OPTIND-1))
 [ -f "$cfg_file" ] || fail "Input file '$cfg_file' not found."
 
 # Derive seed from filename (e.g. Al.mantel.in → Al) unless overridden
-seed="${cfg_file%%.*}"
+seed="$(basename "${cfg_file}")"
+seed="${seed%%.*}"
 [ -n "${cli_seed:-}" ] && seed=$cli_seed
 
 # Read from namelist blocks
@@ -178,7 +179,13 @@ python -c "import yambopy" 2>/dev/null || fail "yambopy not found — please act
 step "wfc2bin"
 origin="${PWD}"
 pushd "${wfc_dir}" > /dev/null || fail "Could not enter ${wfc_dir}/."
-wfc2bin "${Gmax}" "${in_min}" "${in_max}" wfc*.dat || fail "wfc2bin failed."
+
+shopt -s nullglob
+wfc_files=(wfc[0-9]*.dat)
+shopt -u nullglob
+[ ${#wfc_files[@]} -gt 0 ] || fail "No wfc*.dat files found in ${wfc_dir}/."
+
+wfc2bin "${Gmax}" "${in_min}" "${in_max}" "${wfc_files[@]}" || fail "wfc2bin failed."
 mv G_vectors.bin "${origin}/" || fail "Could not move G_vectors.bin."
 mv cartesian_k.bin "${origin}/" || fail "Could not move cartesian_k.bin."
 popd > /dev/null || fail "Could not return from ${wfc_dir}/."
@@ -214,8 +221,10 @@ step_done
 
 # W_ee.py
 step "W_ee"
-Ef=$(grep "Fermi" "${seed}.scf.out" | awk '{print $5}')
+Ef=$(grep "the Fermi energy is" "${seed}.scf.out" | tail -1 | awk '{print $5}')
 [ -n "$Ef" ] || fail "Could not extract Fermi energy from ${seed}.scf.out."
+[[ "$Ef" =~ ^-?[0-9]*\.?[0-9]+([eEdD][+-]?[0-9]+)?$ ]] || fail "Fermi energy is not a number (got '$Ef')."
+
 echo "[$(timestamp)] Fermi energy: ${Ef} eV"
 W_ee.py "${seed}_yambo.nscf.out" "${seed}.bands.out" "${Ef}" \
     --sigma 0.2 --numE 200 --minE "-20" --maxE 20 --nmin "$in_min" || fail "W_ee.py failed."

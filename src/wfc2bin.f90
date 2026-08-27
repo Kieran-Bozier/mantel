@@ -217,7 +217,7 @@ program wfc2bin
     real(dp)                        :: xk(3)
     integer                         :: ik
 
-    integer                         :: count_done
+    integer                         :: count_done=0
     !> G_vectors
     integer, allocatable            :: G_vectors(:, :)
 
@@ -273,7 +273,7 @@ program wfc2bin
         !> Sanity check on the num files and ik
         if (ik < 1 .or. ik > num_files) then
             print *, "Error: ik value out of range for file ", filename_in, ". ik = ", ik
-            stop
+            error stop
         end if
 
         !> bash lists in lexicographical order, so need to use ik to produce correct ordering
