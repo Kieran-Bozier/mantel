@@ -77,10 +77,10 @@ def verbose_input():
 
 &mantel
     ! Minimum band to include when evaluating W_nkmp
-    in_min          = 
+    in_min          = 1
 
-    ! Maximum band to include when evaluating W_nkmp
-    in_max          =
+    ! Maximum band to include when evaluating W_nkmp. Set -1 to include upper limit of QE nbnd
+    in_max          = -1
 
     ! Minimum q to include when evaluating W_nkmp
     iq_min          = 1
