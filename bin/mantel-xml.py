@@ -347,10 +347,10 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
 /
 
 &provenance
-    source_scf   = {scf_file}
-    source_bands = {bands_file}
-    source_nscf  = {nscf_file}
-    generated    = {datetime.now()}
+    source_scf   = "{scf_file}"
+    source_bands = "{bands_file}"
+    source_nscf  = "{nscf_file}"
+    generated    = "{datetime.now().isoformat(timespec='seconds')}"
 /
 """
     with open(filename, 'w') as f:
