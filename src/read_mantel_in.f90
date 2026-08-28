@@ -1,4 +1,4 @@
-module read_input
+module read_mantel_in
 
     !>      This module is responsible for reading from mantel.in
     !>         
@@ -127,4 +127,4 @@ contains
     end subroutine read_isoenergy_namelist
 
 
-end module read_input
+end module read_mantel_in
