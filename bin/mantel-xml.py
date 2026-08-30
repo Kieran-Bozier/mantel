@@ -259,39 +259,6 @@ def fortran_binary_write(filename, data):
         f.write(struct.pack(f'{rank}i', *shape))
         f.write(data_out.tobytes(order='F'))
 
-    
-def write_mantel(scf, bands, nscf, filename):
-        cell          = scf.cell
-        nelec         = scf.nelec
-        mantel_input = f"""&qe
-    qe_kgrid = 
-    nbnd     = 
-    wfc_dir  = 
-/
-
-&yambo
-    yambo_kgrid = 
-    chi_bands   = 
-    NGsBlkXz    = 
-    yambo_dir   = 
-/
-
-&wfc2bin
-    Gmax  = 
-/
-
-&mantel
-    qtf_method = 'fit'
-    num_electrons = {nelec}
-/
-
-CELL_PARAMETERS angstrom
-{cell[0, 0]} {cell[0, 1]} {cell[0, 2]}
-{cell[1, 0]} {cell[1, 1]} {cell[1, 2]}
-{cell[2, 0]} {cell[2, 1]} {cell[2, 2]}
-        """
-
-
 def write_nml(scf_file, bands_file, nscf_file, filename):
     """
     This writes all "facts" from the DFT and Yambo runs
@@ -300,7 +267,7 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
     bands = QExml(bands_file)
     nscf = QExml(nscf_file)
 
-
+    prefix        = scf.prefix
     alat          = scf.alat
     cell          = scf.cell
     volume        = np.linalg.det(cell)
@@ -332,6 +299,7 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
 /
 
 &system
+    prefix      = "{prefix}"
     nelec       = {nelec}
     scf_fermi   = {fermi}
 /
@@ -342,8 +310,8 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
 /
 
 &grids
-    qe_kgrid    = {qe_kgrid[0]} {qe_kgrid[1]} {qe_kgrid[2]}
-    yambo_qgrid = {yambo_qgrid[0]} {yambo_qgrid[1]} {yambo_qgrid[2]}
+    qe_kgrid    = "{qe_kgrid[0]} {qe_kgrid[1]} {qe_kgrid[2]}"
+    yambo_qgrid = "{yambo_qgrid[0]} {yambo_qgrid[1]} {yambo_qgrid[2]}"
 /
 
 &provenance
@@ -389,7 +357,7 @@ def main():
 
 
     #write the namelist file 
-    write_nml(args.scf, args.bands, args.nscf, f"{prefix}.mantel.nml")
+    write_nml(args.scf, args.bands, args.nscf, f"mantel.nml")
 
 
 
