@@ -9,7 +9,7 @@ from datetime import datetime
 def default_input():
     contents = f"""! mantel.in file generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 &qe
-    qe_grid         = ""
+    qe_kgrid         = ""
     nbnd            = 
     wfc_dir         = "./WFC"
 /
@@ -47,7 +47,7 @@ def verbose_input():
     contents = f"""! mantel.in file generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 &qe
     ! Electronic k grid
-    qe_grid         = ""
+    qe_kgrid         = ""
 
     ! Number of electronic bands - set large if want plot W(e,e') up to high energies
     nbnd            = 
