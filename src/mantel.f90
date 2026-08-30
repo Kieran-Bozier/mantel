@@ -4,8 +4,10 @@ program mantel
     !> in the Bloch basis using FFTs and a padded dielectric matrix.
     
     use precision,              only: dp
-    use read_input,             only: read_stdin, read_lattice_vectors, wfc_dir, in_min, in_max, num_electrons, iq_min, iq_max, &
-                                    qtf_method, qtf_fit_nq
+    use read_mantel_in,         only: open_file, read_qe_namelist, read_mantel_namelist, &
+                                    wfc_dir, in_min, in_max, iq_min, iq_max, qtf_method, qtf_fit_nq
+    use read_mantel_nml,        only: open_nml, read_structure_namelist, read_system_namelist, &
+                                    cell_a1_au, cell_a2_au, cell_a3_au, nelec
     use array_io,               only: load_array, save_array
     use write_data,             only: write_W
     use precompute,             only: precomputeVol_au3, precomputeReciprocalLattice, &
@@ -23,6 +25,9 @@ program mantel
     implicit none
 
     !>-------------------------------------------------------
+    !> Reading from files
+    integer                     ::  mantel_in_unit, mantel_nml_unit 
+    
     !> Structure
     real(dp)                    ::  lattice_vectors_bohr(3,3)
     real(dp)                    ::  vol_au3
@@ -111,17 +116,28 @@ program mantel
     call print_banner()
 
     call print_section_header("Input and initialization")
-    !> Read in wfc_dir, num_electrons, in_min and in_max 
-    call read_stdin()
+    
+    !> Read in the input files
+    call open_file(mantel_in_unit, "")
+    call read_qe_namelist(mantel_in_unit)
+    call read_mantel_namelist(mantel_in_unit)
 
-    !> Read lattice vectors
-    call read_lattice_vectors(lattice_vectors_bohr)
+    call open_nml(mantel_nml_unit)
+    call read_structure_namelist(mantel_nml_unit)
+    call read_system_namelist(mantel_nml_unit)
+    close(mantel_nml_unit)
+
+    !> in file we use rows as vectors, but internally we use columns
+    lattice_vectors_bohr(:,1) = cell_a1_au
+    lattice_vectors_bohr(:,2) = cell_a2_au
+    lattice_vectors_bohr(:,3) = cell_a3_au
+
 
     !> Load G vectors
     call load_array("G_vectors.bin", G_vec_crys)
     numG = size(G_vec_crys, 2)
 
-    call print_info_int("Num. electrons                     : ",num_electrons)
+    call print_info_int("Num. electrons                     : ",nelec)
     call print_info_int("Lower band index (in_min)          : ", in_min)
     call print_info_int("Upper band index (in_max)          : ", in_max)
     numBands = in_max - in_min + 1
@@ -155,7 +171,7 @@ program mantel
     if (trim(qtf_method) == "fit") then
         q_TF = precompute_TF_wavevector_fit(epsm1_unpadded, yambo_q, qtf_fit_nq)
     else
-        q_TF = precompute_TF_wavevector(num_electrons, vol_au3)
+        q_TF = precompute_TF_wavevector(nelec, vol_au3)
     end if
     call print_info_real("Thomas-Fermi q_TF (au^-1)         : ", q_TF)
 
@@ -330,51 +346,62 @@ program mantel
 
 contains
 
-    subroutine print_help()
-        write(*,'(A)') 'Usage: mantel.x [-h] < input_file'
-        write(*,'(A)') ''
-        write(*,'(A)') 'Compute the screened Coulomb interaction W(n,m,k) using Yambo dielectric matrices.'
-        write(*,'(A)') ''
-        write(*,'(A)') 'Input is read from standard input and must contain four namelist blocks'
-        write(*,'(A)') 'followed by a CELL_PARAMETERS block:'
-        write(*,'(A)') ''
-        write(*,'(A)') '  &qe'
-        write(*,'(A)') '     qe_kgrid = "Nk1 Nk2 Nk3"      ! k-point grid used in QE calculation'
-        write(*,'(A)') '     nbnd     = <int>              ! number of bands in QE calculation'
-        write(*,'(A)') '     wfc_dir  = "WFC"              ! directory to put ik-*.bin files in'
-        write(*,'(A)') '  /'
-        write(*,'(A)') '  &yambo'
-        write(*,'(A)') '     yambo_kgrid = "Nk1 Nk2 Nk3"   ! k-point (q-point) grid used in Yambo calculation'
-        write(*,'(A)') '     chi_bands   = <int>           ! number of bands for chi in Yambo'
-        write(*,'(A)') '     NGsBlkXs    = <int>           ! number of G-vectors for dielectric matrix'
-        write(*,'(A)') '     yambo_dir   = "YAMBO"         ! directory containing Yambo output'
-        write(*,'(A)') '  /'
-        write(*,'(A)') '  &wfc2bin'
-        write(*,'(A)') '     Gmax = <real>                 ! Miller idx cutoff for wfc2bin. Wfc are shape (2Gmax+1)^3'
-        write(*,'(A)') '  /'
-        write(*,'(A)') '  &mantel'
-        write(*,'(A)') '     qtf_method    = "electrons|fit"  ! method to determine Thomas-Fermi wavevector (default: electrons)'
-        write(*,'(A)') '     num_electrons = <int>         ! number of electrons in the system. Used if qtf_method = electrons'
-        write(*,'(A)') '     qtf_fit_nq    = <int>         ! number of q-points to use for fitting if qtf_method = fit (default:3)'
-        write(*,'(A)') '     in_min        = <int>         ! lower band index (1-based, inclusive)'
-        write(*,'(A)') '     in_max        = <int>         ! upper band index (1-based, inclusive)'
-        write(*,'(A)') '     iq_min        = <int>         ! first q-point to process (default: 1)'
-        write(*,'(A)') '     iq_max        = <int>         ! last q-point to process (default: all)'
-        write(*,'(A)') '  /'
-        write(*,'(A)') '  CELL_PARAMETERS bohr|angstrom'
-        write(*,'(A)') '    a1_x  a1_y  a1_z'
-        write(*,'(A)') '    a2_x  a2_y  a2_z'
-        write(*,'(A)') '    a3_x  a3_y  a3_z'
-        write(*,'(A)') ''
-        write(*,'(A)') 'Required input files (in the working directory):'
-        write(*,'(A)') '  G_vectors.bin, cartesian_k.bin, yambo_qs.bin,'
-        write(*,'(A)') '  yambo_Gs.bin, epsm1_unpadded.bin, WFC/ik-*.bin'
-        write(*,'(A)') ''
-        write(*,'(A)') 'Output files:'
-        write(*,'(A)') '  W_iq*.bin, ik.bin, ikp_iq*.bin'
-        write(*,'(A)') ''
-        write(*,'(A)') 'Options:'
-        write(*,'(A)') '  -h, --help    Print this message and exit'
-    end subroutine print_help
+subroutine print_help()
+    write(*,'(A)') 'Usage: mantel.x [-h] < <seed>.mantel.in'
+    write(*,'(A)') ''
+    write(*,'(A)') 'Compute the screened Coulomb interaction W(n,m,k) using Yambo dielectric matrices.'
+    write(*,'(A)') ''
+    write(*,'(A)') 'mantel.x reads two input files:'
+    write(*,'(A)') ''
+    write(*,'(A)') '  <seed>.mantel.in   the run settings you write, on standard input'
+    write(*,'(A)') '  mantel.nml         the QE facts, generated by mantel-xml.py, read'
+    write(*,'(A)') '                     from the working directory'
+    write(*,'(A)') ''
+    write(*,'(A)') 'Nothing appears in both. Anything the DFT run determined - the cell, the'
+    write(*,'(A)') 'electron count - comes from mantel.nml and is never typed by hand.'
+    write(*,'(A)') ''
+    write(*,'(A)') '--- <seed>.mantel.in : blocks read by mantel.x -------------------------'
+    write(*,'(A)') ''
+    write(*,'(A)') '  &qe'
+    write(*,'(A)') '     qe_kgrid = "Nk1 Nk2 Nk3"      ! k-point grid used in the QE calculation'
+    write(*,'(A)') '     nbnd     = <int>              ! number of bands in the QE calculation'
+    write(*,'(A)') '     wfc_dir  = "WFC"              ! directory holding the ik-*.bin files'
+    write(*,'(A)') '  /'
+    write(*,'(A)') '  &mantel'
+    write(*,'(A)') '     in_min     = <int>            ! lower band index (1-based, inclusive)'
+    write(*,'(A)') '     in_max     = <int>            ! upper band index (1-based, inclusive)'
+    write(*,'(A)') '     iq_min     = <int>            ! first q-point to process (default: 1)'
+    write(*,'(A)') '     iq_max     = <int>            ! last q-point to process (default: -1 == all)'
+    write(*,'(A)') '     qtf_method = "electrons|fit"  ! Thomas-Fermi wavevector method (default: fit)'
+    write(*,'(A)') '     qtf_fit_nq = <int>            ! q-points used for the fit (default: 3)'
+    write(*,'(A)') '  /'
+    write(*,'(A)') ''
+    write(*,'(A)') '--- <seed>.mantel.in : blocks read by the other tools ------------------'
+    write(*,'(A)') ''
+    write(*,'(A)') '  &yambo      yambo_kgrid, chi_bands, NGsBlkXs, yambo_dir   (mantel-prep.sh)'
+    write(*,'(A)') '  &wfc2bin    Gmax                                          (wfc2bin)'
+    write(*,'(A)') '  &isoenergy  numE, minE, maxE, sigma                       (isoenergy.x)'
+    write(*,'(A)') ''
+    write(*,'(A)') 'These are ignored here. Each program reads only the blocks it owns, so one'
+    write(*,'(A)') 'file serves the whole pipeline.'
+    write(*,'(A)') ''
+    write(*,'(A)') '--- mantel.nml : groups read by mantel.x -------------------------------'
+    write(*,'(A)') ''
+    write(*,'(A)') '  &structure  cell_a1_au, cell_a2_au, cell_a3_au   ! lattice vectors, Bohr'
+    write(*,'(A)') '  &system     nelec                                ! number of electrons'
+    write(*,'(A)') ''
+    write(*,'(A)') 'Regenerate it with:'
+    write(*,'(A)') '  mantel-xml.py --scf <s>.xml --bands <b>.xml --nscf <n>.xml'
+    write(*,'(A)') ''
+    write(*,'(A)') 'Required input files (in the working directory):'
+    write(*,'(A)') '  mantel.nml, G_vectors.bin, cartesian_k.bin, yambo_qs.bin,'
+    write(*,'(A)') '  yambo_Gs.bin, epsm1_unpadded.bin, WFC/ik-*.bin'
+    write(*,'(A)') ''
+    write(*,'(A)') 'Output files:'
+    write(*,'(A)') '  W_iq*.bin, ik.bin, ikp_iq*.bin'
+    write(*,'(A)') ''
+    write(*,'(A)') 'Options:'
+    write(*,'(A)') '  -h, --help    Print this message and exit'
+end subroutine print_help
 
 end program mantel
