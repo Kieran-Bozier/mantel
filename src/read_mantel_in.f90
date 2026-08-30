@@ -22,6 +22,15 @@ module read_mantel_in
     real(dp)                        :: maxE = 20.0_dp
     real(dp)                        :: sigma = 0.2_dp
 
+    !> &qe block variables and defaults
+    character(len=32)               ::  qe_kgrid = ""
+    integer                         ::  nbnd = 0
+    character(len=1024)             ::  wfc_dir = "./WFC"
+
+    !> &wfc2bin block variables and defaults
+    integer                         ::  Gmax
+
+
 contains
 
     subroutine open_file(unit, filename)
@@ -125,6 +134,41 @@ contains
             error stop 
         end if 
     end subroutine read_isoenergy_namelist
+
+
+    subroutine read_qe_namelist(unit)
+        !> Reads the qe namelist
+        integer, intent(in)         ::  unit
+        integer                     ::  ios 
+
+        namelist /qe/ qe_kgrid, nbnd, wfc_dir
+
+        rewind(unit)
+        read(unit, nml=qe, iostat=ios)
+        call check_namelist("qe",ios)
+    
+    end subroutine read_qe_namelist
+
+
+    subroutine read_wfc2bin_namelist(unit)
+        !> Reads the mantel namelist 
+        integer, intent(in)         ::  unit 
+        integer                     ::  ios 
+        
+        namelist /wfc2bin/ Gmax
+
+        rewind(unit)
+        read(unit, nml=wfc2bin, iostat=ios)
+        call check_namelist("wfc2bin",ios)
+        
+        if (Gmax <= 0) then
+            print *, "Error: Gmax (", Gmax, ") must be a positive integer"
+            error stop
+        end if
+    end subroutine read_wfc2bin_namelist
+
+
+
 
 
 end module read_mantel_in
