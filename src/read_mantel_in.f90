@@ -26,6 +26,7 @@ module read_mantel_in
     character(len=32)               ::  qe_kgrid = ""
     integer                         ::  nbnd = 0
     character(len=1024)             ::  wfc_dir = "./WFC"
+    character(len=1024)             ::  scf_in = ""
 
     !> &wfc2bin block variables and defaults
     integer                         ::  Gmax = 0
@@ -141,11 +142,21 @@ contains
         integer, intent(in)         ::  unit
         integer                     ::  ios 
 
-        namelist /qe/ qe_kgrid, nbnd, wfc_dir
+        namelist /qe/ qe_kgrid, nbnd, wfc_dir, scf_in
 
         rewind(unit)
         read(unit, nml=qe, iostat=ios)
         call check_namelist("qe",ios)
+
+        if (nbnd <= 0) then
+            print *, "Error: nbnd (", nbnd, ") must be positive integer"
+            error stop 
+        end if 
+
+        if (len_trim(scf_in) <= 0) then
+            print *, "Error: scf input file not found"
+            error stop 
+        end if  
     
     end subroutine read_qe_namelist
 
