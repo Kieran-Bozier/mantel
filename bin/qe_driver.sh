@@ -9,27 +9,42 @@ set -euo pipefail
 
 # --- Default Values ---
 mpinp=32           # Default MPI cores
-final_dir="WFC"    # Default output directory
-seed=""            # Seed is empty initially
-kgrid=""           # kgrid is empty initially
-nbnd_override=""   # Optional explicit band count; if unset, uses 1.4 × SCF nbnd
 
 # --- Usage/Help Function ---
 usage() {
-    echo "Usage: $0 [OPTIONS] seed kgrid"
-    echo ""
-    echo "Arguments:"
-    echo "  seed              The name of the system (e.g., 'silicon')"
-    echo "  kgrid             kgrid used in bands calculation (cubic grid)"
+    echo "Usage: $0 -c [seed].mantel.in"
     echo ""
     echo "Options:"
-    echo "  -n, --np <int>    Number of MPI cores (Default: 32)"
-    echo "  -b, --nbnd <int>  Number of bands for bands calculation (Default: 1.4 × SCF nbnd)"
-    echo "  -d, --dir <path>  Name of final directory (Default: WFC)"
-    echo "  -h, --help        Show this help message"
+    echo "  -c   Input file (required), e.g. Al.mantel.in"
+    echo "  -n   MPI ranks for QE (default: 32)"
+    echo "  -h   Show this help message"
     echo ""
+    exit "${1:-1}"
+}
+
+# Function to print an error message and exit
+fail() {
+    echo "Error: $*" >&2
     exit 1
 }
+
+# Read a key from a named namelist block in a file.
+# Handles: whitespace around =, surrounding quotes.
+# If a key appears multiple times within the block, the last occurrence wins.
+read_cfg() {
+    local file="$1" block="$2" key="$3"
+    # Use awk to extract lines between &block and next /
+    awk "/^[[:space:]]*&${block}[[:space:]]*(![^)]*)?$/,/^[[:space:]]*\//" "$file" |
+        grep -E "^[[:space:]]*${key}[[:space:]]*=" |
+        tail -1 |
+        #Remove stuff up to and including =
+        sed 's/^[^=]*=[[:space:]]*//' |
+        #Remove any quotes
+        sed "s/^['\"]//; s/['\"]$//" |
+        #Trim trailing whitespace
+        sed 's/[[:space:]]*$//'
+}
+
 
 # --- Safe rm function ---
 safe_rm_outdir() {
@@ -58,49 +73,41 @@ safe_rm_outdir() {
   rm -rf "$canon"
 }
 
-
-# --- Argument Parsing Loop ---
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -n|--np)
-            mpinp="$2"
-            shift 2
-            ;;
-        -b|--nbnd)
-            nbnd_override="$2"
-            shift 2
-            ;;
-        -d|--dir)
-            final_dir="$2"
-            shift 2
-            ;;
-        -h|--help)
-            usage
-            ;;
-        -*) # Handle unknown flags
-            echo "Error: Unknown option: $1"
-            usage
-            ;;
-        *) # Handle positional argument (seed)
-            if [ -z "$seed" ]; then
-                seed="$1"
-                shift 1
-            elif [ -z "$kgrid" ]; then
-                kgrid="$1"
-                shift 1
-            else
-                echo "Error: Too many positional arguments provided."
-                usage
-            fi
-            ;;
+cfg_file=""
+while getopts "c:n:h" opt; do
+    case ${opt} in
+        c ) cfg_file=$OPTARG ;;
+        n ) mpinp=$OPTARG ;; 
+        h ) usage 0 ;;
+        \? ) echo "Invalid option: -$OPTARG" >&2; usage ;;
+        :  ) echo "Option -$OPTARG requires an argument." >&2; usage ;;
     esac
 done
 
-# --- 4. Validation ---
-if [ -z "$seed" ] || [ -z "$kgrid" ]; then
-    echo "Error: You must provide a seed name and kgrid (e.g Al 12)."
-    usage
-fi
+shift $((OPTIND-1))
+[ $# -eq 0 ] || fail "Unexpected argument: $1"
+
+
+# Check the input file exists
+[ -z "$cfg_file" ] && fail "Input file is required. Use -c <seed>.mantel.in."
+[ -f "$cfg_file" ] || fail "Input file '$cfg_file' not found."
+
+# Read from the namelist
+qe_kgrid=$(read_cfg "$cfg_file" qe qe_kgrid || true)
+nbnd=$(read_cfg "$cfg_file" qe nbnd     || true)
+wfc_dir=$(read_cfg "$cfg_file" qe wfc_dir || true)
+scf_in=$(read_cfg "$cfg_file" qe scf_in || true)
+
+if [ -z "$wfc_dir" ]; then wfc_dir=WFC; fi
+[ -z "$scf_in" ] && fail "SCF input file not found."
+
+
+
+# Check commands
+for cmd in pw.x mpirun qe_input.py; do
+    command -v "$cmd" >/dev/null || fail "'$cmd' not found in PATH. ..."
+done
+[ -f "${scf_in}" ] || fail "SCF input ${scf_in} not found."
 
 t_start=$SECONDS
 
@@ -112,74 +119,44 @@ log() {
 # --- 5. Debug / Confirmation  ---
 echo "Configuration:"
 echo "--------------------------"
-echo "  Seed:           $seed"
 echo "  Cores:          $mpinp"
-echo "  Output:         $final_dir"
-echo "  Bands kgrid:    $kgrid"
+echo "  scf_in:         $scf_in"
+echo "  qe nbnd:        $nbnd"
+echo "  qe kgrid:       ${qe_kgrid}"
 echo "--------------------------"
 
-# function to build the .bands input
-build_bands() {
-    local seed=$1
-    local kgrid=$2
-
-    nbnd=$(grep 'Kohn-Sham' ${seed}.scf.out | awk '{print $5}')
-    [ -z "$nbnd" ] && { echo "Error: could not extract nbnd from SCF output"; exit 1; }
-    if [ -n "$nbnd_override" ]; then
-        new_nbnd=$nbnd_override
-        echo "Using explicit nbnd = ${new_nbnd} for bands calculation"
-    else
-        new_nbnd=$(awk -v nbnd="$nbnd" 'BEGIN{nbnd=int(nbnd*1.4); print nbnd}')
-    fi
-
-    cp ${seed}.scf.in ${seed}.bands.in
-    sed -i "/calculation\s*=/s/'scf'/'bands'/" ${seed}.bands.in
-
-    #Check if nbnd already set - if not, set it
-    if ! grep -q "nbnd" "${seed}.bands.in"; then
-        sed -i "/^[[:space:]]*ibrav/a nbnd = ${new_nbnd}" "${seed}.bands.in"
-        echo "Nbnd not set in scf file, so setting nbnd to ${new_nbnd} for bands calculation"
-    fi
-
-    #check if verbosity set to high
-    if ! grep -q "verbosity" "${seed}.bands.in"; then
-    sed -i "/^[[:space:]]*outdir/a \ \ verbosity = 'high'" "${seed}.bands.in"
-    echo "Setting verbosity to high for bands calculation"
-    fi
-
-    # NB: assumes K_POINTS automatic (2 lines). Crystal/gamma formats
-    # would need a different approach
-    sed -i '/^K_POINTS/{N;d;}' ${seed}.bands.in
-    kmesh.pl ${kgrid} >> ${seed}.bands.in
-}
+# Build the .bands input
+qe_input.py "${scf_in}" "bands.in" --mode bands --nbnd "$nbnd" --kgrid "$qe_kgrid"
 
 
 # Outdir can be empty - if so, default to current directory. Otherwise, extract the value from the scf input file.
-outdir=$(grep 'outdir' ${seed}.scf.in | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
+outdir=$(grep -E "^[[:space:]]*outdir[[:space:]]*=" "$scf_in" | head -1 | awk -F"=" '{gsub(/[" \047,]/,"",$2); print $2}' || true)
 outdir="${outdir:-.}"
+prefix=$(grep -E "^[[:space:]]*prefix[[:space:]]*=" "$scf_in" | head -1 | awk -F"=" '{gsub(/[" \047,]/,"",$2); print $2}' || true)
+[ -z "$prefix" ] && fail "could not read prefix from $scf_in"
+
 
 #Run SCF calculation
 log "Starting SCF calculation..."
-mpirun -n ${mpinp} pw.x < ${seed}.scf.in > ${seed}.scf.out
-grep -q "JOB DONE." ${seed}.scf.out || { echo "Error: SCF calculation failed"; exit 1; }
-mkdir -p xml && cp "${outdir}/${seed}.save/data-file-schema.xml" xml/scf.xml
+mpirun -n ${mpinp} pw.x < "${scf_in}" > scf.out
+grep -q "JOB DONE." scf.out || { echo "Error: SCF calculation failed"; exit 1; }
+mkdir -p xml && cp "${outdir}/${prefix}.save/data-file-schema.xml" xml/scf.xml
 log "SCF calculation completed."
 
-#Build the bands file and run bands calculation
-build_bands "${seed}" "${kgrid}"
+#Run bands calculation
 log "Starting Bands calculation..."
-mpirun -n ${mpinp} pw.x -in ${seed}.bands.in > ${seed}.bands.out
-grep -q "JOB DONE." ${seed}.bands.out || { echo "Error: Bands calculation failed"; exit 1; }
-cp "${outdir}/${seed}.save/data-file-schema.xml" xml/bands.xml
+mpirun -n ${mpinp} pw.x -in bands.in > bands.out
+grep -q "JOB DONE." bands.out || { echo "Error: Bands calculation failed"; exit 1; }
+cp "${outdir}/${prefix}.save/data-file-schema.xml" xml/bands.xml
 log "Bands calculation completed."
 
 #Copy wfc.dat files to final directory
 log "Copying wavefunction files to final directory..."
-mkdir -p ${final_dir}
-rsync -aW --info=stats2 "${outdir}/${seed}.save/" "${final_dir}/"
-rm -f ${final_dir}/charge-density.dat
-rm -f ${final_dir}/*.upf
-log "Wavefunction files copied to ${final_dir}."
+mkdir -p ${wfc_dir}
+rsync -aW --info=stats2 "${outdir}/${prefix}.save/" "${wfc_dir}/"
+rm -f ${wfc_dir}/charge-density.dat
+rm -f ${wfc_dir}/*.upf
+log "Wavefunction files copied to ${wfc_dir}."
 
 
 #Ensure the outdir is removed to avoid confusion for later steps
