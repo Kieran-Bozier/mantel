@@ -44,7 +44,8 @@ endif
 
 MODULES = precision.f90 \
           array_io.f90 \
-          read_input.f90 \
+          read_mantel_in.f90 \
+          read_mantel_nml.f90 \
           write_data.f90 \
           precompute.f90 \
           epsm1.f90 \
@@ -60,17 +61,26 @@ OBJS     = $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o) $(MAIN:.f90=.o))
 WFC_SRC  = wfc2bin.f90
 WFC_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o $(WFC_SRC:.f90=.o))
 
+ISO_SRC  = isoenergy.f90
+ISO_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
+            read_mantel_in.o read_mantel_nml.o $(ISO_SRC:.f90=.o))
+ 
+
 EXEC     = $(BUILD_DIR)/mantel.x
-WFC_EXEC = $(BUILD_DIR)/wfc2bin
+WFC_EXEC = $(BUILD_DIR)/wfc2bin.x
+ISO_EXEC = $(BUILD_DIR)/isoenergy.x
 BINDIR   = bin
 
-all: $(EXEC) $(WFC_EXEC)
+all: $(EXEC) $(WFC_EXEC) ${ISO_EXEC}
 
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
 
 $(WFC_EXEC): $(WFC_OBJS)
 	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
+
+$(ISO_EXEC): $(ISO_OBJS)
+    $(FC) $(FFLAGS) -o $@ $^ $(LIBS)
 
 $(BUILD_DIR)/%.o: %.f90 | $(BUILD_DIR)
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(BUILD_DIR) -c $< -o $@
