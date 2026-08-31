@@ -2,6 +2,7 @@ FC       = gfortran
 VPATH    = src
 BUILD_DIR = build
 BUILD   ?= fast
+ARCH ?= -march=native
 
 #Read from here, not from any files
 .PHONY: all clean install
@@ -37,7 +38,7 @@ endif
 ifeq ($(BUILD), profile)
     FFLAGS = -O0 -g -pg -Wall -fcheck=all -fopenmp
 else
-    FFLAGS = -O3 -fopenmp -fbacktrace -march=native -flto -funroll-loops 
+    FFLAGS = -O3 -fopenmp -fbacktrace $(ARCH) -flto -funroll-loops 
 endif
 
 
@@ -59,7 +60,8 @@ MAIN     = mantel.f90
 OBJS     = $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o) $(MAIN:.f90=.o))
 
 WFC_SRC  = wfc2bin.f90
-WFC_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o $(WFC_SRC:.f90=.o))
+WFC_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
+            read_mantel_in.o read_mantel_nml.o $(WFC_SRC:.f90=.o))
 
 ISO_SRC  = isoenergy.f90
 ISO_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
@@ -80,7 +82,7 @@ $(WFC_EXEC): $(WFC_OBJS)
 	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
 
 $(ISO_EXEC): $(ISO_OBJS)
-    $(FC) $(FFLAGS) -o $@ $^ $(LIBS)
+	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
 
 $(BUILD_DIR)/%.o: %.f90 | $(BUILD_DIR)
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(BUILD_DIR) -c $< -o $@
@@ -91,11 +93,15 @@ $(BUILD_DIR):
 install: all
 	mkdir -p $(BINDIR)
 	install -m 755 $(EXEC)     $(BINDIR)/mantel.x
-	install -m 755 $(WFC_EXEC) $(BINDIR)/wfc2bin
+	install -m 755 $(WFC_EXEC) $(BINDIR)/wfc2bin.x
+	install -m 755 $(ISO_EXEC) $(BINDIR)/isoenergy.x
 
 clean:
 	rm -rf $(BUILD_DIR)
 
 # Module dependency order
 $(BUILD_DIR)/mantel.o:   $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o))
-$(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o
+$(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
+                        $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o 
+$(BUILD_DIR)/isoenergy.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
+                        $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
