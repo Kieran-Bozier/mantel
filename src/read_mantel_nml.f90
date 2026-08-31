@@ -12,9 +12,15 @@ module read_mantel_nml
     real(dp)                        :: cell_a3_au(3)
 
     !> &system
-    character(len=20)               ::  prefix=""
+    character(len=32)               ::  prefix=""
     integer                         ::  nelec=0
     real(dp)                        ::  scf_fermi=0.0_dp
+
+    !> &grids
+    character(len=32)               ::  qe_kgrid=""
+    character(len=32)               ::  yambo_qgrid=""
+    integer                         ::  nks = 0
+    integer                         ::  nqs = 0
 
 contains
 
@@ -88,6 +94,31 @@ contains
             error stop 
         end if 
     end subroutine read_system_namelist
+
+
+    subroutine read_grids_namelist(unit)
+        !> Reads the mantel namelist 
+        integer, intent(in)         ::  unit 
+        integer                     ::  ios 
+
+        namelist /grids/ qe_kgrid, yambo_qgrid, nks, nqs 
+
+        rewind(unit)
+        read(unit, nml=grids, iostat=ios)
+        call check_nml_namelist("grids",ios)
+        
+        if (nks == 0) then
+            print *, "Error: Number of kpoints (nks) is zero"
+            print *, "Error: check if .nml was read correctly"
+            error stop 
+        end if 
+
+        if (nqs == 0) then
+            print *, "Error: Number of qpoints (nqs) is zero"
+            print *, "Error: check if .nml was read correctly"
+            error stop 
+        end if 
+    end subroutine read_grids_namelist
 
 
 end module read_mantel_nml

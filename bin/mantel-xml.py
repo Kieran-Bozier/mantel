@@ -279,6 +279,9 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
     qe_kgrid      = scf.k_grid
     yambo_qgrid   = nscf.k_grid
 
+    nks           = bands.nks
+    nqs           = nscf.nks
+
     bohr_to_angstrom = 0.529177210903
 
 
@@ -312,6 +315,8 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
 &grids
     qe_kgrid    = "{qe_kgrid[0]} {qe_kgrid[1]} {qe_kgrid[2]}"
     yambo_qgrid = "{yambo_qgrid[0]} {yambo_qgrid[1]} {yambo_qgrid[2]}"
+    nks         = {nks}
+    nqs         = {nqs}
 /
 
 &provenance

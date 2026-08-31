@@ -57,12 +57,12 @@ contains
     end subroutine read_wfc_dat
 
     
-    subroutine write_wfc_bin(filename_out, mill, evc, igwx,  G_max, in_min, in_max)
+    subroutine write_wfc_bin(filename_out, mill, evc, igwx,  Gmax, in_min, in_max)
         !> Writes the data to binary files
         character(len=*), intent(in)           :: filename_out
         integer, intent(in)                    :: mill(:, :)
         complex(dp), intent(in)                :: evc(:, :)
-        integer, intent(in)                    :: igwx, G_max, in_min, in_max
+        integer, intent(in)                    :: igwx, Gmax, in_min, in_max
 
         complex(dp), allocatable               :: cube_wfc(:,:,:,:)
         integer                                :: nx, ny, nz
@@ -84,9 +84,9 @@ contains
         n_bands_out = in_max - in_min + 1
 
         !> Grid dimensions
-        nx = (2 * G_max) +1
-        ny = (2 * G_max) +1
-        nz = (2 * G_max) +1
+        nx = (2 * Gmax) +1
+        ny = (2 * Gmax) +1
+        nz = (2 * Gmax) +1
 
         allocate(cube_wfc(nx, ny, nz, n_bands_out))
         cube_wfc = (0.0_dp, 0.0_dp)
@@ -98,7 +98,7 @@ contains
                 gz = mill(3, g_idx)
 
                 !> Only keep G_vectors in the box
-                if (abs(gx) <= G_max .and. abs(gy) <= G_max .and. abs(gz) <= G_max) then
+                if (abs(gx) <= Gmax .and. abs(gy) <= Gmax .and. abs(gz) <= Gmax) then
                     !> merge is an if/else
                     gx_wrap = merge(gx + 1, nx + gx + 1, gx >= 0)
                     gy_wrap = merge(gy + 1, ny + gy + 1, gy >= 0)
@@ -125,40 +125,54 @@ contains
     end subroutine write_wfc_bin
 
     subroutine print_help()
-        print *, "================================================================="
-        print *, "                     WFC2BIN CONVERTER                           "
-        print *, "================================================================="
-        print *, "Usage:"
-        print *, "  ./wfc2bin <G_max> <in_min> <in_max> <files...>"
-        print *, ""
-        print *, "Arguments:"
-        print *, "  <G_max>   : Max G-vector index (Grid = 2*G_max + 1)."
-        print *, "  <in_min>  : First band index to extract (1-based)."
-        print *, "  <in_max>  : Last band index to extract."
-        print *, "  <files>   : List of .dat files (use wildcards like *.dat)."
-        print *, ""
-        print *, "Example:"
-        print *, "  ./wfc2bin 12 5 10 ./wfc_dir/*.dat"
-        print *, "   (Processes all .dat files, extracts bands 5-10)"
-        print *, "================================================================="
+        write (*,'(A)') "================================================================="
+        write (*,'(A)') "                     WFC2BIN CONVERTER                           "
+        write (*,'(A)') "================================================================="
+        write (*,'(A)') "Usage:"
+        write (*,'(A)') " wfc2bin [-h] < [seed].mantel.in "
+        write (*,'(A)') ""
+        write (*,'(A)') " This code converts the QE wfc#.dat files into the ik-#.bin format"
+        write (*,'(A)') ""
+        write (*,'(A)') "--- <seed>.mantel.in : blocks read by wfc2bin.x ------------------"
+        write (*,'(A)') ""
+        write(*,'(A)') '  &qe'
+        write(*,'(A)') '     qe_kgrid = "Nk1 Nk2 Nk3"      ! k-point grid used in the QE calculation'
+        write(*,'(A)') '     nbnd     = <int>              ! number of bands in the QE calculation'
+        write(*,'(A)') '     wfc_dir  = "WFC"              ! directory holding the wfc*.dat files'
+        write(*,'(A)') '  /'
+        write(*,'(A)') '  &wfc2bin'
+        write(*,'(A)') '     Gmax  = <int>                 ! Max G (Miller) index'
+        write(*,'(A)') '  /'
+        write(*,'(A)') '  &mantel'
+        write(*,'(A)') '     in_min     = <int>            ! lower band index (1-based, inclusive)'
+        write(*,'(A)') '     in_max     = <int>            ! upper band index (1-based, inclusive)'
+        write(*,'(A)') '     iq_min     = <int>            ! first q-point to process (default: 1)'
+        write(*,'(A)') '     iq_max     = <int>            ! last q-point to process (default: -1 == all)'
+        write(*,'(A)') '     qtf_method = "electrons|fit"  ! Thomas-Fermi wavevector method (default: fit)'
+        write(*,'(A)') '     qtf_fit_nq = <int>            ! q-points used for the fit (default: 3)'
+        write(*,'(A)') '  /'
+        write (*,'(A)') ""
+        write (*,'(A)') "  The variables that are actually used are:"
+        write (*,'(A)') "      wfc_dir, Gmax, in_min, in_max  "
+        write (*,'(A)') "================================================================="
     end subroutine print_help
 
-    subroutine G_vectors_arr(G_max, G_vectors)
+    subroutine G_vectors_arr(Gmax, G_vectors)
         !> Generates the G_vectors array
         !>  order is:
         !>  -5, -5, -5
         !>  -5, -5, -4 ...
-        integer, intent(in)                :: G_max
+        integer, intent(in)                :: Gmax
         integer, allocatable, intent(out)  :: G_vectors(:, :)
         integer                            :: gx, gy, gz
         integer                            :: index
 
-        allocate(G_vectors(3, (2*G_max +1)**3))
+        allocate(G_vectors(3, (2*Gmax +1)**3))
 
         index = 1
-        do gx = -G_max, G_max
-            do gy = -G_max, G_max
-                do gz = -G_max, G_max
+        do gx = -Gmax, Gmax
+            do gy = -Gmax, Gmax
+                do gz = -Gmax, Gmax
                     G_vectors(:, index) = [gx, gy, gz]
                     index = index + 1
                 end do
@@ -199,21 +213,28 @@ end module wfc_io
 program wfc2bin
     use wfc_io
     use omp_lib
-    implicit none 
+    use read_mantel_nml,            only: open_nml, read_grids_namelist, nks
+    use read_mantel_in,             only: open_file, read_qe_namelist, read_wfc2bin_namelist, &
+                                            read_mantel_namelist, wfc_dir, Gmax, in_min, in_max    
+implicit none 
 
     !> variables
-    character(len=1024)             :: arg_str
-    integer                         :: G_max, in_min, in_max
-    integer                         :: num_files, nbnd_out, i
+    !>-----------------------------------------------------------------------
+    integer                         :: nargs
+    character(len=1024)             :: arg, fname
+    logical                         :: found
+
+
+    integer                         :: i
 
     !> Files
-    character(len=1024),allocatable :: file_list(:)
+    integer                         ::  mantel_in_unit, mantel_nml_unit 
 
     !> private variable in OMP loops
     character(len=1024)             :: filename_in, filename_out
     integer, allocatable            :: mill(:,:)
     complex(dp), allocatable        :: evc(:,:)
-    integer                         :: nbnd_in, igwx, npol
+    integer                         :: igwx
     real(dp)                        :: xk(3)
     integer                         :: ik
 
@@ -228,55 +249,72 @@ program wfc2bin
     !> Timing
     real(dp)                        :: t_start, t_end, wall_start, wall_end
 
-    !> Argument passing
-        if (command_argument_count() < 4) then
-        call print_help()
-        stop
-    end if  
+    !> Help function
+    nargs = command_argument_count()
+    if (nargs > 0) then
+        call get_command_argument(1, arg)
+        if (trim(arg) == '-h' .or. trim(arg) == '--help') then
+            call print_help()
+            stop 0
+        end if
+    end if
 
-    call get_command_argument(1, arg_str)
-    read(arg_str, *) G_max
 
-    call get_command_argument(2, arg_str)
-    read(arg_str, *) in_min
+    !> Read the files
+    call open_file(mantel_in_unit, "")
+    call read_wfc2bin_namelist(mantel_in_unit)
+    call read_mantel_namelist(mantel_in_unit)
+    call read_qe_namelist(mantel_in_unit)
 
-    call get_command_argument(3, arg_str)
-    read(arg_str, *) in_max
+    call open_nml(mantel_nml_unit)
+    call read_grids_namelist(mantel_nml_unit)
+    close(mantel_nml_unit)
 
-    nbnd_out = in_max - in_min + 1
 
-    num_files = command_argument_count() - 3
-    allocate(file_list(num_files))
-    do i = 1, num_files
-        call get_command_argument(i + 3, file_list(i))
+    !> First, check if number of files matches expected number
+    do i = 1, nks
+        write(fname, '(A,"/wfc",I0,".dat")') trim(wfc_dir), i
+        inquire(file=fname, exist=found)
+        if (.not. found) then
+            print *, "Error: expected ", nks, " wavefunction files but ", trim(fname), " is missing"
+            error stop
+        end if
     end do
 
+    
 
     call cpu_time(t_start)
     wall_start = omp_get_wtime()
-    print *, "Processing", num_files, "files..."
+    print *, "Processing", nks, "files..."
 
-    allocate(k_cart(3, num_files))
-    allocate(k_filled(num_files))
+    allocate(k_cart(3, nks))
+    allocate(k_filled(nks))
+    k_cart = 0.0_dp
+    k_filled = .false.
 
     !> Parallel OMP processing
     !$OMP PARALLEL DO DEFAULT(SHARED) &
     !$OMP PRIVATE(i, filename_in, filename_out, mill, evc, igwx, xk, ik) &
     !$OMP SCHEDULE(DYNAMIC, 1)
-    do i = 1, num_files
-        filename_in = trim(file_list(i))
+    do i = 1, nks
+        write(filename_in, '(A,"/wfc",I0,".dat")') trim(wfc_dir), i
 
         call read_wfc_dat(filename_in, mill, evc, igwx, xk, ik)
-        write(filename_out, '("ik-", I0, ".bin")') ik
-        call write_wfc_bin(filename_out, mill, evc, igwx, G_max, in_min, in_max)
-
+       
         !> Sanity check on the num files and ik
-        if (ik < 1 .or. ik > num_files) then
+        if (ik < 1 .or. ik > nks) then
             print *, "Error: ik value out of range for file ", filename_in, ". ik = ", ik
             error stop
         end if
 
-        !> bash lists in lexicographical order, so need to use ik to produce correct ordering
+        if (ik /= i) then
+            print *, "Error: i and ik mismatch. i = ", i , " , ik = ", ik
+            error stop
+        end if 
+
+        write(filename_out, '(A,"/ik-", I0, ".bin")') trim(wfc_dir), ik
+        call write_wfc_bin(filename_out, mill, evc, igwx, Gmax, in_min, in_max)
+
         k_cart(:,ik) = xk
         k_filled(ik) = .true.
 
@@ -285,8 +323,8 @@ program wfc2bin
         count_done = count_done + 1
 
         !$OMP critical (update_screen)
-            if (mod(count_done, 50) == 0 .or. count_done == num_files) then
-                call print_progress(count_done, num_files)
+            if (mod(count_done, 50) == 0 .or. count_done == nks) then
+                call print_progress(count_done, nks)
             end if
         !$OMP end critical (update_screen)
 
@@ -296,7 +334,7 @@ program wfc2bin
     !> Check we filled all k_cart entries
     if (.not. all(k_filled)) then
         write(*,'(a)') 'ERROR: not all k-point slots were filled. Missing indices:'
-        do i = 1, num_files
+        do i = 1, nks
           if (.not. k_filled(i)) write(*,'(2x,i0)') i
         end do
         error stop
@@ -306,14 +344,13 @@ program wfc2bin
     wall_end = omp_get_wtime()
 
     !> Write the G_vectors file
-    allocate(G_vectors(3, (2*G_max +1)**3))
-    call G_vectors_arr(G_max, G_vectors)
+    call G_vectors_arr(Gmax, G_vectors)
     call save_array("G_vectors.bin", G_vectors)
 
     !> Write the cartesian k vectors
     call save_array("cartesian_k.bin", k_cart)
 
-    print *, "Conversion completed for ", num_files, " files."
+    print *, "Conversion completed for ", nks, " files."
     print *, "Total CPU time: ", t_end - t_start, " seconds."
     print *, "Total Wall time: ", wall_end - wall_start, " seconds."
 

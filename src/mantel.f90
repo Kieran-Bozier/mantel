@@ -347,7 +347,8 @@ program mantel
 contains
 
 subroutine print_help()
-    write(*,'(A)') 'Usage: mantel.x [-h] < <seed>.mantel.in'
+    write(*,'(A)') 'Usage: '
+    write(*,'(A)') 'mantel.x [-h] < [seed].mantel.in'
     write(*,'(A)') ''
     write(*,'(A)') 'Compute the screened Coulomb interaction W(n,m,k) using Yambo dielectric matrices.'
     write(*,'(A)') ''

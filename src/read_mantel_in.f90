@@ -28,7 +28,7 @@ module read_mantel_in
     character(len=1024)             ::  wfc_dir = "./WFC"
 
     !> &wfc2bin block variables and defaults
-    integer                         ::  Gmax
+    integer                         ::  Gmax = 0
 
 
 contains
