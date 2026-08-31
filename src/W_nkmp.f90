@@ -376,7 +376,8 @@ contains
                 !> If this happens when not at G=0, then something is likely wrong
                 if (i /= zero_G_idx) then
                     write(stderr, *) &
-                    "Warning: |q+G| is very small (", norm_q_plus_G, ") for G index ", i, ". This may indicate an issue with the input data."
+                    "Warning: |q+G| is very small (", norm_q_plus_G,&
+                         ") for G index ", i, ". This may indicate an issue with the input data."
                 end if
                 
                 inv_qG(i) = 0.0_dp   ! Handle the singularity case
