@@ -75,9 +75,8 @@ def fortran_binary_write(filename, data):
         # We pack 'N' integers at once.
         f.write(struct.pack(f'{rank}i', *shape))
         
-        # D. Write Data Payload
+        # D. Write Data 
         # CRITICAL: Use order='F' to fix the Column-Major vs Row-Major difference
-        # CRITICAL: Do NOT split real/imag. Keep them interleaved.
         f.write(data_out.tobytes(order='F'))
 
 def main():
