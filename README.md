@@ -1,8 +1,8 @@
-# mantel
+# Mantel
 
-**Bloch-basis evaluation of the screened Coulomb interaction**
+### Bloch-basis evaluation of the screened Coulomb interaction 
 
-`mantel` computes the screened Coulomb interaction matrix elements W(n,m,k) in the Bloch basis using DFT wavefunctions and a dielectric matrix from [Yambo](https://www.yambo-code.eu/). 
+`Mantel` computes the screened Coulomb interaction matrix elements W(n,m,k,q) in the Bloch basis using DFT wavefunctions from and a dielectric matrix from [Yambo](https://www.yambo-code.eu/). 
 
 The core algorithm uses FFT-based density products combined with the inverse dielectric matrix ε⁻¹(G,G',q) from Yambo to evaluate:
 
@@ -10,10 +10,10 @@ W(n,m,k) = ∑_{G,G'} ρ*_{nm,k}(G) · v(G+q) · ε⁻¹(G,G',q) · ρ_{nm,k}(G'
 
 ### Quickstart
 If you have ${MKLROOT} set, you should be able to compile the codes with:
-
+```
 $ make
 $ make install
-
+```
 You will still need to follow the conda instructions listed later to
 setup a suitable environment for the python scripts
 
@@ -23,14 +23,14 @@ setup a suitable environment for the python scripts
 
 ### Fortran code
 
-|===============|=========================================|
+
 | Dependency    | Notes                                   |
 |---------------|-----------------------------------------|
 | gfortran ≥ 9  |                                         |
 | FFTW3         | With OpenMP support (`libfftw3_omp`)    |
 | LAPACK + BLAS | Standard linear algebra                 |
 | OpenMP        | Parallelisation over k-points           |
-|===============|=========================================|
+
 
 If you are running on a system with the intel MKL available, then
 the makefile will find all of these, provided you specify the MKLROOT
