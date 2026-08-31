@@ -8,7 +8,7 @@ The core algorithm uses FFT-based density products combined with the static inve
 
 $$
 \begin{aligned}
-W_{\mathbf{k},n,\,\mathbf{k+q},m} &= \sum_{\mathbf{G}\,\mathbf{G'}} \bigg( \frac{1}{V}\frac{4\pi}{\lvert\mathbf{q+G}\rvert\,\lvert\mathbf{q+G'}\rvert} \epsilon^{-1}_{\mathbf{G},\mathbf{G'}}(\mathbf{q}, 0)\\
+W_{\mathbf{k},n,\,\mathbf{k+q},m} &= \sum_{\mathbf{G}\mathbf{G'}} \bigg( \frac{1}{V}\frac{4\pi}{\lvert\mathbf{q+G}\rvert\,\lvert\mathbf{q+G'}\rvert} \epsilon^{-1}_{\mathbf{G},\mathbf{G'}}(\mathbf{q}, 0)\\
 &\quad \times 
 \rho_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G})\, \rho^*_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G'}) \bigg)
 \end{aligned}
@@ -16,7 +16,7 @@ $$
 
 
 ### Quickstart
-If you have ${MKLROOT} set, you should be able to compile the codes with:
+If you have `${MKLROOT}` set, you should be able to compile the codes with:
 ```
 $ make
 $ make install
