@@ -1,6 +1,8 @@
-#
-#   Writes an empty .mantel.in file
-#
+#!/usr/bin/env python3
+
+#############################################################################
+#                   Writes an template .mantel.in file                      #
+#############################################################################
 import argparse 
 from datetime import datetime
 
@@ -12,6 +14,7 @@ def default_input():
     qe_kgrid         = ""
     nbnd            = 
     wfc_dir         = "./WFC"
+    scf_in          = "scf.in"
 /
 
 &yambo
@@ -54,6 +57,9 @@ def verbose_input():
     
     ! Directory where the QE wavefunctions are stored
     wfc_dir         = "./WFC"
+
+    ! scf input file
+    scf_in          = "scf.in" 
 /
 
 &yambo
