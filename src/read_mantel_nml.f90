@@ -22,6 +22,10 @@ module read_mantel_nml
     integer                         ::  nks = 0
     integer                         ::  nqs = 0
 
+    !> &bands
+    integer                         ::  bands_nbnd=0
+    integer                         ::  chi_nbnd=0
+
 contains
 
     subroutine open_nml(unit)
@@ -119,6 +123,30 @@ contains
             error stop 
         end if 
     end subroutine read_grids_namelist
+
+    subroutine read_bands_namelist(unit)
+        !> Reads the mantel namelist 
+        integer, intent(in)         ::  unit 
+        integer                     ::  ios 
+
+        namelist /bands/ bands_nbnd, chi_nbnd 
+
+        rewind(unit)
+        read(unit, nml=bands, iostat=ios)
+        call check_nml_namelist("bands",ios)
+        
+        if (bands_nbnd <= 0 ) then
+            print *, "Error: number of QE wavefunction bands must be positive. nbnd = ", bands_nbnd
+            error stop 
+        end if 
+
+        if (chi_nbnd <= 0 ) then
+            print *, "Error: number of yambo 𝝐^-1 bands must be positive. nbnd = ", chi_nbnd
+            error stop 
+        end if 
+        
+    end subroutine read_bands_namelist
+
 
 
 end module read_mantel_nml
