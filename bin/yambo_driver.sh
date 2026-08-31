@@ -16,8 +16,9 @@ usage() {
     echo "  -n   MPI ranks for QE (default: 32)"
     echo "  -h   Show this help message"
     echo ""
-    exit 1
+    exit "${1:-1}"
 }
+
 
 # Function to print an error message and exit
 fail() {
