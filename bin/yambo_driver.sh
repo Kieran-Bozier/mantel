@@ -6,30 +6,41 @@ set -euo pipefail
 
 # ---- 1. Default parameters ----
 mpinp=32           # Default MPI cores
-nbnd=""            # Required: number of bands (must be set via -b)
-ngsblk=25          # Default NGsBlkXs (Ry)
-final_dir="YAMBO"  # Default final directory
-seed=""            # Required: seed name (must be set via positional argument)
-kgrid=""           # Required: kgrid for nscf (must be set via positional argument)
 
-# ---- 2. Usage function ----
+
 usage() {
-    echo "Usage: $0 [OPTIONS] seed kgrid"
-    echo ""
-    echo "Arguments:"
-    echo "  seed              The name of the system (e.g., 'silicon')"
-    echo "  kgrid             The kgrid used in the nscf calculation, which sets the Yambo grid"
+    echo "Usage: $0 -c [seed].mantel.in"
     echo ""
     echo "Options:"
-    echo "  -n, --np <int>       Number of MPI cores (Default: 32)"
-    echo "  -b, --nbnd <int>     Number of bands (Required)"
-    echo "  -g, --ngsblk <int>   NGsBlkXs value in Ry (Default: 25)"
-    echo "  -d, --dir <path>     Name of final directory (Default: YAMBO)"
-    echo "  -h, --help           Show this help message"
+    echo "  -c   Input file (required), e.g. Al.mantel.in"
+    echo "  -n   MPI ranks for QE (default: 32)"
+    echo "  -h   Show this help message"
     echo ""
     exit 1
 }
 
+# Function to print an error message and exit
+fail() {
+    echo "Error: $*" >&2
+    exit 1
+}
+
+# Read a key from a named namelist block in a file.
+# Handles: whitespace around =, surrounding quotes.
+# If a key appears multiple times within the block, the last occurrence wins.
+read_cfg() {
+    local file="$1" block="$2" key="$3"
+    # Use awk to extract lines between &block and next /
+    awk "/^[[:space:]]*&${block}[[:space:]]*(![^)]*)?$/,/^[[:space:]]*\//" "$file" |
+        grep -E "^[[:space:]]*${key}[[:space:]]*=" |
+        tail -1 |
+        #Remove stuff up to and including =
+        sed 's/^[^=]*=[[:space:]]*//' |
+        #Remove any quotes
+        sed "s/^['\"]//; s/['\"]$//" |
+        #Trim trailing whitespace
+        sed 's/[[:space:]]*$//'
+}
 
 # --- Safe rm function ---
 safe_rm_outdir() {
@@ -57,58 +68,55 @@ safe_rm_outdir() {
   rm -rf "$canon"
 }
 
-
-# ---- 3. Argument Parsing Loop ----
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -n|--np)
-            mpinp="$2"
-            shift 2 # Consume flag and value
-            ;;
-        -b|--nbnd)
-            nbnd="$2"
-            shift 2
-            ;;
-        -g|--ngsblk)
-            ngsblk="$2"
-            shift 2
-            ;;
-        -d|--dir)
-            final_dir="$2"
-            shift 2
-            ;;
-        -h|--help)
-            usage
-            ;;
-        -*) # Handle unknown flags
-            echo "Error: Unknown option: $1"
-            usage
-            ;;
-        *) # Handle positional argument (seed)
-            if [ -z "$seed" ]; then
-                seed="$1"
-                shift 1
-            elif [ -z "$kgrid" ]; then
-                kgrid="$1"
-                shift 1
-            else
-                echo "Error: Too many positional arguments provided."
-                usage
-            fi
-            ;;
+cfg_file=""
+while getopts "c:n:h" opt; do
+    case ${opt} in
+        c ) cfg_file=$OPTARG ;;
+        n ) mpinp=$OPTARG ;; 
+        h ) usage 0 ;;
+        \? ) echo "Invalid option: -$OPTARG" >&2; usage ;;
+        :  ) echo "Option -$OPTARG requires an argument." >&2; usage ;;
     esac
 done
+shift $((OPTIND-1))
+[ $# -eq 0 ] || fail "Unexpected argument: $1"
+[ -z "$cfg_file" ] && fail "Input file is required. Use -c <file>.mantel.in."
+[ -f "$cfg_file" ] || fail "Input file '$cfg_file' not found."
 
-# ---- 4. Validation ----
-if [ -z "$seed" ] || [ -z "$kgrid" ]; then
-    echo "Error: You must provide a seed name and kgrid (e.g Al 12)."
-    usage
-fi
 
-if [ -z "$nbnd" ]; then
-    echo "Error: You must specify the number of bands with -b/--nbnd."
-    usage
-fi
+# Read in the mantel.in values
+yambo_kgrid=$(read_cfg "$cfg_file" yambo yambo_kgrid || true)
+chi_bands=$(read_cfg   "$cfg_file" yambo chi_bands   || true)
+ngsblk=$(read_cfg      "$cfg_file" yambo NGsBlkXs    || true)
+yambo_dir=$(read_cfg   "$cfg_file" yambo yambo_dir   || true)
+scf_in=$(read_cfg      "$cfg_file" qe    scf_in      || true)
+
+# Check and validate input
+if [ -z "$yambo_dir" ]; then yambo_dir=YAMBO; fi
+
+
+[ -z "$scf_in" ]      && fail "'scf_in' not set in &qe block of $cfg_file."
+[ -f "${scf_in}" ] || fail "SCF input ${scf_in} not found."
+
+[ -z "$chi_bands" ]   && fail "'chi_bands' not set in &yambo block of $cfg_file."
+[ -z "$ngsblk" ]      && fail "'NGsBlkXs' not set in &yambo block of $cfg_file."
+[ -z "$yambo_kgrid" ] && fail "'yambo_kgrid' not set in &yambo block of $cfg_file."
+
+
+# Outdir can be empty - if so, default to current directory. Otherwise, extract the value from the scf input file.
+outdir=$(grep -E "^[[:space:]]*outdir[[:space:]]*=" "$scf_in" | head -1 | awk -F"=" '{gsub(/[" \047,]/,"",$2); print $2}' || true)
+outdir="${outdir:-.}"
+outdir="$(readlink -f "$outdir")" 
+prefix=$(grep -E "^[[:space:]]*prefix[[:space:]]*=" "$scf_in" | head -1 | awk -F"=" '{gsub(/[" \047,]/,"",$2); print $2}' || true)
+[ -z "$prefix" ] && fail "could not read prefix from $scf_in"
+workdir=$(pwd)
+
+# Check commands
+for cmd in pw.x mpirun p2y yambo qe_input.py; do
+    command -v "$cmd" >/dev/null || fail "'$cmd' not found in PATH. ..."
+done
+
+
 
 t_start=$SECONDS
 
@@ -116,70 +124,22 @@ log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
 # ---- 5. Confirmation ----
 echo "Configuration:"
-echo "--------------------------"
-echo "  Seed:       $seed"
-echo "  Cores:      $mpinp"
-echo "  Bands:      $nbnd"
-echo "  Output:     $final_dir"
-echo "  nscf kgrid: $kgrid"
-echo "--------------------------"
+echo "----------------------------"
+echo "  Cores       :      $mpinp"
+echo "  Chi_bands   :      $chi_bands"
+echo "  NGsBlk      :      $ngsblk"
+echo "  Yambo_dir   :      $yambo_dir"
+echo "  Yambo kgrid :      $yambo_kgrid"
+echo "----------------------------"
 
+#Build the yambo scf
+qe_input.py "$scf_in" yambo.scf.in  --mode scf-yambo  --nbnd "$chi_bands" 
+qe_input.py "$scf_in" yambo.nscf.in --mode nscf-yambo --nbnd "$chi_bands" --kgrid "$yambo_kgrid"
 
-build_yambo_scf() {
-    local seed=$1
-    local nbnd=$2
-
-    cp "${seed}.scf.in" "${seed}_yambo.scf.in"
-
-    # --- Sort out bands ---
-    # Always write the user-supplied nbnd, overwriting any existing value.
-    if grep -q "nbnd" "${seed}_yambo.scf.in"; then
-        # Matches 'nbnd', optional spaces, '=', optional spaces, and the number.
-        # Replaces only that part, preserving trailing commas or comments.
-        sed -i "s/nbnd[[:space:]]*=[[:space:]]*[0-9]*/nbnd = ${nbnd}/" "${seed}_yambo.scf.in"
-        echo "Overwriting existing 'nbnd' with ${nbnd}"
-    else
-        sed -i "/^[[:space:]]*ibrav/a \ \ nbnd = ${nbnd}," "${seed}_yambo.scf.in"
-        echo "Setting nbnd to ${nbnd}"
-    fi
-
-    # --- Other Parameters ---
-
-    # Check if verbosity set to high
-    if ! grep -q "verbosity" "${seed}_yambo.scf.in"; then
-        sed -i "/^[[:space:]]*outdir/a \ \ verbosity = 'high'" "${seed}_yambo.scf.in"
-        echo "Setting verbosity to high"
-    fi
-
-    # Check if force_symmorphic is set
-    if ! grep -q "force_symmorphic" "${seed}_yambo.scf.in"; then
-        sed -i "/^[[:space:]]*occupations/a \ \ force_symmorphic = .true." "${seed}_yambo.scf.in"
-        echo "Setting force_symmorphic to true"
-    fi
-
-    echo "Written ${seed}_yambo.scf.in"
-}
-
-
-
-build_yambo_nscf(){
-    local seed=$1
-    local kgrid=$2
-    cp "${seed}_yambo.scf.in" "${seed}_yambo.nscf.in"
-
-    # Change calculation. Use sed address to enforce only on calculation lines
-    sed -i "/calculation\s*=/s/'scf'/'nscf'/" "${seed}_yambo.nscf.in"
-
-    #set kgrid
-    sed -i "/K_POINTS/{n;s/.*/$kgrid 0 0 0/;}" "${seed}_yambo.nscf.in"
-
-    echo "Written ${seed}_yambo.nscf.in for Yambo calculation"
-}
 
 build_yambo_in(){
-    local seed=$1
-    local actual_nbnd=$2
-    local actual_ngsblk=$3
+    local actual_nbnd=$1
+    local actual_ngsblk=$2
 
     cat > yambo_RPA.in << EOL          
 #                         YAMBO                                             
@@ -206,46 +166,41 @@ EOL
 }
 
 
-
 # Build the yambo scf file
 log "Starting Yambo SCF calculation..."
-build_yambo_scf "$seed" "$nbnd"
-mpirun -n ${mpinp} pw.x < "${seed}_yambo.scf.in" > "${seed}_yambo.scf.out"
-grep -q "JOB DONE." "${seed}_yambo.scf.out" || { echo "Error: SCF calculation failed"; exit 1; }
+mpirun -n ${mpinp} pw.x < yambo.scf.in > yambo.scf.out
+grep -q "JOB DONE." yambo.scf.out || { echo "Error: SCF calculation failed"; exit 1; }
 log "SCF calculation completed."
 
 # Build the nscf file
 log "Starting Yambo NSCF calculation..."
-build_yambo_nscf "$seed" "$kgrid"
-mpirun -n ${mpinp} pw.x < "${seed}_yambo.nscf.in" > "${seed}_yambo.nscf.out"
-grep -q "JOB DONE." "${seed}_yambo.nscf.out" || { echo "Error: NSCF calculation failed"; exit 1; }
+mpirun -n ${mpinp} pw.x < yambo.nscf.in > yambo.nscf.out
+grep -q "JOB DONE." "yambo.nscf.out" || { echo "Error: NSCF calculation failed"; exit 1; }
 mkdir -p "${workdir}/xml"
-cp "${outdir}/${seed}.save/data-file-schema.xml" "${workdir}/xml/nscf.xml"
+cp "${outdir}/${prefix}.save/data-file-schema.xml" "${workdir}/xml/nscf.xml"
 log "NSCF calculation completed."
 
-workdir=$(pwd)
-mkdir -p "${final_dir}"
-outdir=$(grep 'outdir' "${seed}_yambo.scf.in" | awk -F "=" '{gsub(/[" \047]/,"",$2); print $2}')
-outdir="${outdir:-.}"
-outdir="$(readlink -f "$outdir")"
-cd "$outdir/${seed}.save/"
+
+mkdir -p "${yambo_dir}"
+cd "$outdir/${prefix}.save/"
 
 log "Initializing Yambo..."
 p2y || { echo "Error: p2y conversion failed"; exit 1; }
 [ -d "SAVE" ] || { echo "Error: p2y did not produce SAVE directory"; exit 1; }
-mv SAVE "${workdir}/${final_dir}/SAVE"
-cd "${workdir}/${final_dir}"
+mv SAVE "${workdir}/${yambo_dir}/SAVE"
+cd "${workdir}/${yambo_dir}"
 
 log "Running Yambo..."
 yambo || { echo "Error: yambo setup failed"; exit 1; }
 
-build_yambo_in "$seed" "$nbnd" "$ngsblk"
+build_yambo_in "$chi_bands" "$ngsblk"
 log "Running Yambo RPA screening..."
 mpirun -n ${mpinp} yambo -Input yambo_RPA.in -J RPA
+ls RPA/ndb.em1s* >/dev/null 2>&1 || { echo "Error: Yambo RPA produced no ndb.em1s database"; exit 1; }
+
 
 #Ensure outdir is removed to remove confusion for later steps
 
-safe_rm_outdir "$outdir" 
-
+safe_rm_outdir "$outdir" || log "WARNING: outdir cleanup skipped"
 
 log "Yambo calculation completed. Total elapsed: $(( SECONDS - t_start ))s"
