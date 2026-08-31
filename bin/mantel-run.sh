@@ -28,7 +28,7 @@ usage() {
     echo "  <xml_dir>         - xml files from scf, bands and nscf runs"
     echo "  <wfc_dir>/        — wavefunction .dat files for wfc2bin"
     echo "  <yambo_dir>/SAVE, <yambo_dir>/RPA — Yambo dielectric data"
-    exit 1
+    exit "${1:-1}"
 }
 
 # Function to print an error message and exit
@@ -59,7 +59,7 @@ timestamp() {
     date +"%H:%M:%S"; 
 }
 
-#Keep track of steop number and timings
+#Keep track of step number and timings
 STEP=0; TOTAL=5; STEP_START=0
 step() {
     STEP=$((STEP + 1))
@@ -78,13 +78,14 @@ cfg_file=""
 while getopts "c:h" opt; do
     case ${opt} in
         c ) cfg_file=$OPTARG ;;
-        h ) usage ;;
+        h ) usage 0 ;;
         \? ) echo "Invalid option: -$OPTARG" >&2; usage ;;
         :  ) echo "Option -$OPTARG requires an argument." >&2; usage ;;
     esac
 done
 
 shift $((OPTIND-1))
+[ $# -eq 0 ] || fail "Unexpected argument: $1"
 
 # ----------   Load config file   ----------
 
@@ -116,12 +117,15 @@ for cmd in mantel-xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x; do
 done
 
 #Check we are in an environment with yambopy
-python3 -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda        
-  environment first."
+python3 -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda environment first."
 
 
 [ -d "${yambo_dir}/SAVE" ]        || fail "${yambo_dir}/SAVE directory not found."
 [ -d "${yambo_dir}/RPA" ]         || fail "${yambo_dir}/RPA directory not found."
+
+for f in xml/scf.xml xml/bands.xml xml/nscf.xml; do
+    [ -f "$f" ] || fail "$f not found (needed by mantel-xml.py)."
+done
 
 # ----------   Pipeline   ----------
 
