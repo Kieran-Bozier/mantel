@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 #       This python script is used to read xml files
 #       Can be imported as a module, or if used as a 
@@ -333,15 +334,18 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
 
 def main():
     parser = argparse.ArgumentParser(description="Reads the .xml files and saves important information in .nml and .bin.")
-    parser.add_argument("--scf",   type=Path, default=None, help="The scf xml file")
-    parser.add_argument("--bands", type=Path, default=None, help="The bands xml file")
-    parser.add_argument("--nscf",  type=Path, default=None, help="The nscf xml file")
+    parser.add_argument("--scf",   type=Path, default="xml/scf.xml", help="The scf xml file")
+    parser.add_argument("--bands", type=Path, default="xml/bands.xml", help="The bands xml file")
+    parser.add_argument("--nscf",  type=Path, default="xml/nscf.xml", help="The nscf xml file")
     parser.add_argument("--mantel", action='store_true', help="write a <prefix>.mantel.in file")
     args = parser.parse_args()
 
-    if args.scf is None or args.bands is None or args.nscf is None:
-        print("Please provide the --scf, --bands, and --nscf xml files.")
-        exit(1)
+    info = f"""
+Using:
+    - scf path      : {args.scf}
+    - bands path    : {args.bands}
+    - nscf path     : {args.nscf}"""
+    print(info)
 
     scf   = QExml(args.scf)
     bands = QExml(args.bands)
