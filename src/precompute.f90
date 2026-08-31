@@ -123,9 +123,9 @@ contains
 
         !> Check input
         if (nq_fit > num_q - 1) then
-            print *, "Warning: precompute_TF_wavevector_fit: nq_fit exceeds available non-zero q-points; returning 0"
-            q_TF = 0.0_dp
-            return
+            print *, "Error: qtf_fit_nq (", nq_fit, ") exceeds the number of non-zero q-points (", num_q - 1, ")"
+            print *, "Reduce qtf_fit_nq in &mantel, or use a denser Yambo q-grid."
+            error stop
         end if
 
         !> index-sort - builds a sorted list of q_mag2 and corresponding order, using insertion sort for simplicity
