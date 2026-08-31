@@ -1,39 +1,32 @@
 #!/bin/bash
+set -euo pipefail
+
 
 ##############################################################################################
 #        This script runs the second stage of the calculation                                #
-#        ---------------------------------------------------------------                     #Can
-#         (1)    Runs wfc2bin to convert QE wfc.dat files to .bin format                     #
-#         (2)    Runs prepare_yambo to write yambo results in .bin format                    #
-#         (3)    Runs mantel.x to compute the W_nkmp                                         #
-#         (4)    Runs bin_converter.py to convert .bin to .npy for Python post-processing    #
-#         (5)    Runs W_ee.py to compute isoenergy average                                   #
-#         (6)    Runs mu.py to compute mu values vs sigma                                    #
-#         (7)    Runs plotter.py to plot the final W_ee and DOS results                      #
+#        ---------------------------------------------------------------                     #
+#         (1)    Runs mantel-xml.py to create the mantel.nml file                            #
+#         (2)    Runs wfc2bin to convert QE wfc.dat files to .bin format                     #
+#         (3)    Runs prepare_yambo to write yambo results in .bin format                    #
+#         (4)    Runs mantel.x to compute the W_nkmp                                         #
+#         (5)    Runs isoenergy.x to compute W_ee.dat                                        #
 ##############################################################################################
 
 # ----------   Helpers   ----------
 
 usage() {
-    echo "Usage: $0 -c <seed>.mantel.in [-s seed] [-g Gmax] [-i in_min] [-j in_max] [-y yambo_dir]"
+    echo "Usage: $0 -c [seed].mantel.in"
     echo ""
-    echo "Run the full mantel workflow for a material: wfc2bin -> prepare_yambo ->"
-    echo "mantel.x -> bin_converter -> W_ee -> plotter."
+    echo "Run the full mantel workflow for a material"
     echo ""
     echo "Options:"
     echo "  -c   Input file (required), e.g. Al.mantel.in"
-    echo "  -s   Seed name (overrides filename-derived seed)"
-    echo "  -g   Max G-vector cutoff passed to wfc2bin (overrides &wfc2bin block)"
-    echo "  -i   Minimum band index (overrides &mantel block)"
-    echo "  -j   Maximum band index (overrides &mantel block)"
-    echo "  -y   Yambo output directory (overrides &yambo block)"
     echo "  -h   Show this help message"
     echo ""
     echo "Required files in the working directory:"
     echo "  <seed>.mantel.in  — mantel.x namelist input"
-    echo "  <seed>.scf.out    — QE SCF output (for Fermi energy)"
-    echo "  <seed>_yambo.nscf.out, <seed>.bands.out — for W_ee.py"
-    echo "  <wfc_dir>/        — wavefunction .dat files from wfc2bin"
+    echo "  <xml_dir>         - xml files from scf, bands and nscf runs"
+    echo "  <wfc_dir>/        — wavefunction .dat files for wfc2bin"
     echo "  <yambo_dir>/SAVE, <yambo_dir>/RPA — Yambo dielectric data"
     exit 1
 }
@@ -61,16 +54,13 @@ read_cfg() {
         sed 's/[[:space:]]*$//'
 }
 
-is_positive_int() {
-    [[ "$1" =~ ^[1-9][0-9]*$ ]]
-}
 
 timestamp() { 
     date +"%H:%M:%S"; 
 }
 
 #Keep track of steop number and timings
-STEP=0; TOTAL=7; STEP_START=0
+STEP=0; TOTAL=5; STEP_START=0
 step() {
     STEP=$((STEP + 1))
     STEP_START=$SECONDS
@@ -85,14 +75,9 @@ step_done() {
 
 cfg_file=""
 
-while getopts "c:g:i:j:s:y:h" opt; do
+while getopts "c:h" opt; do
     case ${opt} in
         c ) cfg_file=$OPTARG ;;
-        g ) cli_Gmax=$OPTARG ;;
-        i ) cli_in_min=$OPTARG ;;
-        j ) cli_in_max=$OPTARG ;;
-        s ) cli_seed=$OPTARG ;;
-        y ) cli_yambo_dir=$OPTARG ;;
         h ) usage ;;
         \? ) echo "Invalid option: -$OPTARG" >&2; usage ;;
         :  ) echo "Option -$OPTARG requires an argument." >&2; usage ;;
@@ -106,89 +91,48 @@ shift $((OPTIND-1))
 [ -z "$cfg_file" ] && fail "Input file is required. Use -c <seed>.mantel.in."
 [ -f "$cfg_file" ] || fail "Input file '$cfg_file' not found."
 
-# Derive seed from filename (e.g. Al.mantel.in → Al) unless overridden
-seed="$(basename "${cfg_file}")"
-seed="${seed%%.*}"
-[ -n "${cli_seed:-}" ] && seed=$cli_seed
-
 # Read from namelist blocks
-Gmax=$(read_cfg "$cfg_file" "wfc2bin" "Gmax")
-in_min=$(read_cfg "$cfg_file" "mantel" "in_min")
-in_max=$(read_cfg "$cfg_file" "mantel" "in_max")
-yambo_dir=$(read_cfg "$cfg_file" "yambo" "yambo_dir")
-wfc_dir=$(read_cfg "$cfg_file" "qe" "wfc_dir")
+yambo_dir=$(read_cfg "$cfg_file" "yambo" "yambo_dir" || true)
 
 # Apply defaults for optional values
-[ -z "$Gmax" ]      && Gmax=12
-[ -z "$in_min" ]    && in_min=1
-[ -z "$in_max" ]    && in_max=6
-[ -z "$yambo_dir" ] && yambo_dir=YAMBO
-[ -z "$wfc_dir" ]   && wfc_dir=WFC
-
-# CLI overrides (highest priority)
-[ -n "${cli_Gmax:-}" ]     && Gmax=$cli_Gmax
-[ -n "${cli_in_min:-}" ]   && in_min=$cli_in_min
-[ -n "${cli_in_max:-}" ]   && in_max=$cli_in_max
-[ -n "${cli_yambo_dir:-}" ] && yambo_dir=$cli_yambo_dir
-
-# ----------   Argument validation   ----------
-
-[ -z "$seed" ] && fail "'seed' could not be derived from filename."
-
-is_positive_int "$Gmax"   || fail "-g Gmax must be a positive integer (got '$Gmax')."
-is_positive_int "$in_min" || fail "-i in_min must be a positive integer (got '$in_min')."
-is_positive_int "$in_max" || fail "-j in_max must be a positive integer (got '$in_max')."
-[ "$in_min" -le "$in_max" ] || fail "-i in_min ($in_min) must be <= -j in_max ($in_max)."
+if [ -z "$yambo_dir" ]; then yambo_dir=YAMBO; fi
 
 # ----------   Logging   ----------
 
-LOG_FILE="${seed}_mantel.log"
+LOG_FILE="mantel-run.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "[$(timestamp)] Logging to ${LOG_FILE}"
 
 echo "========================================"
 echo "  mantel-run  $(date '+%Y-%m-%d %H:%M:%S')"
-echo "  seed=$seed  Gmax=$Gmax  bands=$in_min..$in_max"
-echo "  yambo_dir=$yambo_dir  wfc_dir=$wfc_dir"
 echo "  config=$cfg_file"
 echo "========================================"
 RUN_START=$SECONDS
 
 # ----------   Pre-flight checks   ----------
 #Check the commands exist
-for cmd in wfc2bin mantel.x prepare_yambo.py bin_converter.py W_ee.py mu.py plotter.py; do
+for cmd in mantel-xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x; do
     command -v "$cmd" &>/dev/null || fail "'$cmd' not found in PATH."
 done
 
 #Check we are in an environment with yambopy
-python -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda        
+python3 -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda        
   environment first."
 
 
-[ -d "${wfc_dir}" ]               || fail "${wfc_dir}/ directory not found."
 [ -d "${yambo_dir}/SAVE" ]        || fail "${yambo_dir}/SAVE directory not found."
 [ -d "${yambo_dir}/RPA" ]         || fail "${yambo_dir}/RPA directory not found."
-[ -f "${seed}.mantel.in" ] || fail "${seed}.mantel.in not found."
-[ -f "${seed}.scf.out" ]  || fail "${seed}.scf.out not found (needed for Fermi energy)."
-[ -f "${seed}_yambo.nscf.out" ] || fail "${seed}_yambo.nscf.out not found."
-[ -f "${seed}.bands.out" ]      || fail "${seed}.bands.out not found."
 
 # ----------   Pipeline   ----------
 
+#mantel-xml
+step "mantel-xml"
+mantel-xml.py || fail "mantel-xml.py failed."
+step_done
+
 # wfc2bin
 step "wfc2bin"
-origin="${PWD}"
-pushd "${wfc_dir}" > /dev/null || fail "Could not enter ${wfc_dir}/."
-
-shopt -s nullglob
-wfc_files=(wfc[0-9]*.dat)
-shopt -u nullglob
-[ ${#wfc_files[@]} -gt 0 ] || fail "No wfc*.dat files found in ${wfc_dir}/."
-
-wfc2bin "${Gmax}" "${in_min}" "${in_max}" "${wfc_files[@]}" || fail "wfc2bin failed."
-mv G_vectors.bin "${origin}/" || fail "Could not move G_vectors.bin."
-mv cartesian_k.bin "${origin}/" || fail "Could not move cartesian_k.bin."
-popd > /dev/null || fail "Could not return from ${wfc_dir}/."
+wfc2bin.x < "${cfg_file}" > "wfc2bin.out" || fail "wfc2bin failed. See wfc2bin.out"
 step_done
 
 # Prepare yambo arrays
@@ -198,49 +142,14 @@ step_done
 
 # mantel.x
 step "mantel.x"
-mantel.x < "${seed}.mantel.in" > "${seed}.mantel.out" || fail "mantel.x failed. See ${seed}.mantel.out."
+mantel.x < "${cfg_file}" > "mantel.out" || fail "mantel.x failed. See mantel.out."
 step_done
 
-# Convert .bin to .npy
-step "bin_converter"
-[ -f "ik.bin" ] || fail "No output files from mantel.x — check ${seed}.mantel.out."
-# nullglob: if a glob matches no files, bash normally passes the literal pattern
-# string to the loop body. Setting nullglob makes it expand to nothing instead,
-# so the loop simply doesn't run. We restore the default afterwards.
-shopt -s nullglob
-for i in W_iq*.bin; do
-    bin_converter.py "${i}" --ord "2,0,1" > /dev/null || fail "bin_converter.py failed on ${i}."
-done
-for i in ikp_iq*.bin; do
-    bin_converter.py "${i}" > /dev/null || fail "bin_converter.py failed on ${i}."
-done
-shopt -u nullglob
-bin_converter.py "ik.bin" || fail "bin_converter.py failed on ik.bin."
-seq 1 $((in_max - in_min + 1)) > in.txt                                     #write i_n
+#isoenergy.x
+step "isoenergy.x"
+isoenergy.x < "${cfg_file}" > "isoenergy.out" || fail "isoenergy.x failed. See isoenergy.out"
 step_done
 
-# W_ee.py
-step "W_ee"
-Ef=$(grep "the Fermi energy is" "${seed}.scf.out" | tail -1 | awk '{print $5}')
-[ -n "$Ef" ] || fail "Could not extract Fermi energy from ${seed}.scf.out."
-[[ "$Ef" =~ ^-?[0-9]*\.?[0-9]+([eEdD][+-]?[0-9]+)?$ ]] || fail "Fermi energy is not a number (got '$Ef')."
-
-echo "[$(timestamp)] Fermi energy: ${Ef} eV"
-W_ee.py "${seed}_yambo.nscf.out" "${seed}.bands.out" "${Ef}" \
-    --sigma 0.2 --numE 200 --minE "-20" --maxE 20 --nmin "$in_min" || fail "W_ee.py failed."
-step_done
-
-# mu.py
-step "mu"
-mu.py "${seed}_yambo.nscf.out" "${seed}.bands.out" "${Ef}" \
-    0.1 2.0 20 --nmin "$in_min" || fail "mu.py failed."
-step_done
-
-# plotter.py
-step "plotter"
-plotter.py W_ee_raw.npy dos_raw.npy --seed "${seed}-fortran" --emin "-20" --emax 20 \
-    || fail "plotter.py failed."
-step_done
 
 echo "========================================"
 echo "  All steps completed.  Total: $((SECONDS - RUN_START))s"
