@@ -190,25 +190,6 @@ This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat
 
 
 
-
-
-
-```
-QE DFT -> Yambo -> wfc2bin -> prepare_yambo.py -> mantel.x -> bin_converter.py -> W_ee.py -> plotter.py
-```
-|======|==================|===================================================|
-| Step | Tool             | Description                                       |
-|------|------------------|---------------------------------------------------|
-| 1    | Quantum ESPRESSO | Run DFT calculation, produce wavefunction files   |
-| 2    | Yambo            | Calculates the inv. dielectric at RPA level       |
-| 3    | wfc2bin          | Convert QE wavefunctions to binary format         |
-| 4    | prepare_yambo.py | Extract G-vectors, qpoints, ε⁻¹ from Yambo output |
-| 5    | mantel.x         | Compute W(n,m,k), the W matrix elements           |
-| 6    | bin_converter.py | Convert output binaries to .npy for analysis      |
-| 7    | W_ee.py          | Compute isoenergy average of W                    |
-| 8    | plotter.py       | Plot results                                      |
-|======|==================|===================================================|
-
 ---
 
 ## Running `mantel.x`
