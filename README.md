@@ -46,15 +46,15 @@ scf.in
 ```
 Create the mantel.in input using
 ```
-$ mantel-gen.py -v mantel.in
+$ mantel_gen.py -v mantel.in
 ```
 Manually modify to set parameters as desired. Then run
 the full pipeline with
 ```
-$ mantel-prep.sh -c mantel.in
+$ mantel_prep.sh -c mantel.in
    ... [ output here ]  ...
 
-$ mantel-run.sh -c mantel.in
+$ mantel_run.sh -c mantel.in
    ... [ output here ] ...
 ```
 This should return a `W_ee.dat` file.
@@ -170,10 +170,10 @@ python bin/W_ee.py ...
 ## Full pipeline
 
 The pipeline consists of two high-level scripts 
-#### Step 1. `mantel-prep.sh`
+#### Step 1. `mantel_prep.sh`
 This script prepares all the inputs required for `mantel`, by running a `Quantum ESPRESSO` bands calculation to find the wavefunction files, and also running a `Yambo` calculation (at static RPA level) to obtain the inverse dielectric.
 
-#### Step 2. `mantel-run.sh`
+#### Step 2. `mantel_run.sh`
 This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat`.
 
 
@@ -181,8 +181,8 @@ A summary of the codes is shown below. All codes come with a `-h` helper.
 
 |     Code      |     Description                  |
 |---------------|----------------------------------|
-| `mantel-gen.py` | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
-| `mantel-xml.py` | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
+| `mantel_gen.py` | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
+| `mantel_xml.py` | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
 | `wfc2bin.x`    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
 | `mantel.x`   | Calculates $W_{n,\mathbf{k}, m, \mathbf{k+q}}$ and stores in `W_iq.bin` for each $q$ |
 | `isoenergy.x`  |  Performs isoenergy average to return $W(\varepsilon, \varepsilon')$ in `W_ee.dat` |
@@ -203,11 +203,11 @@ More information about how to run each of the codes can be found in the `/docs/`
 ## Running the test suite
 
 ```bash
-bin/mantel-test.sh         # generate test data (Al, Nb, Ta, H₃S) and run full pipeline
-bin/mantel-test.sh -f      # generate test data only, no execution
+test/mantel_test.sh         # generate test data (Al, Nb, Ta, H₃S) and run full pipeline
+test/mantel_test.sh -f      # generate test data only, no execution
 ```
 
-> **Note:** The test script requires Quantum ESPRESSO and pseudopotentials. Edit the `PSEUDO_DIR` and `SCRATCH_DIR` variables at the top of `bin/mantel-test.sh` before running. See the comments in that file for details.
+> **Note:** The test script requires Quantum ESPRESSO and pseudopotentials. Edit the `PSEUDO_DIR` and `SCRATCH_DIR` variables at the top of `test/mantel_test.sh` before running. See the comments in that file for details.
 
 ---
 

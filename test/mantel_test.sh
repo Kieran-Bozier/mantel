@@ -159,11 +159,9 @@ cat > Nb/Nb.scf.in << EOF
   prefix='Nb'
   pseudo_dir='${PSEUDO_DIR}'
   outdir='${SCRATCH_DIR}/Nb'
-  verbosity='high'
 /
 
 &SYSTEM
-  nbnd=20
   ibrav=0,
   nat=1,
   ntyp=1,
@@ -386,8 +384,8 @@ EOF
 #####       Now run
 # Check required executables are available before attempting to run
 if [ $run_mantel -eq 1 ]; then
-    command -v mantel-prep.sh &>/dev/null || fail "'mantel-prep.sh' not found in PATH."
-    command -v mantel-run.sh  &>/dev/null || fail "'mantel-run.sh' not found in PATH."
+    command -v mantel_prep.sh &>/dev/null || fail "'mantel_prep.sh' not found in PATH."
+    command -v mantel_run.sh  &>/dev/null || fail "'mantel_run.sh' not found in PATH."
 fi
 
 #Check we are in an environment with yambopy
@@ -399,29 +397,29 @@ if [ $run_mantel -eq 1 ]; then
     echo "Running mantel on test data..."
     #------------- Aluminium --------------
     cd Al || { echo "Error: could not enter Al/"; exit 1; }
-    mantel-prep.sh -c Al.mantel.in
-    mantel-run.sh -c Al.mantel.in
+    mantel_prep.sh -c Al.mantel.in
+    mantel_run.sh -c Al.mantel.in
     cd ../
     echo "Aluminium done."
 
     #------------- Niobium --------------
     cd Nb || { echo "Error: could not enter Nb/"; exit 1; }
-    mantel-prep.sh -c Nb.mantel.in
-    mantel-run.sh -c Nb.mantel.in
+    mantel_prep.sh -c Nb.mantel.in
+    mantel_run.sh -c Nb.mantel.in
     cd ../
     echo "Niobium done."
 
     #------------- Tantalum --------------
     cd Ta || { echo "Error: could not enter Ta/"; exit 1; }
-    mantel-prep.sh -c Ta.mantel.in
-    mantel-run.sh -c Ta.mantel.in
+    mantel_prep.sh -c Ta.mantel.in
+    mantel_run.sh -c Ta.mantel.in
     cd ../
     echo "Tantalum done."
 
     #------------- H3S --------------
     cd H3S || { echo "Error: could not enter H3S/"; exit 1; }
-    mantel-prep.sh -c H3S.mantel.in
-    mantel-run.sh -c H3S.mantel.in
+    mantel_prep.sh -c H3S.mantel.in
+    mantel_run.sh -c H3S.mantel.in
     cd ../
     echo "H3S done"
 
