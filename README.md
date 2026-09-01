@@ -183,6 +183,7 @@ This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat
 | wfc2bin.x    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
 | qe_driver.sh |  Obtains the QE wavefunctions   |
 | yambo_driver.sh | Runs the RPA Yambo calculation |
+|-----------------|--------------------------------|
 
 
 
