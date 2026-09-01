@@ -41,7 +41,7 @@ To compile the fortran codes `wfc2bin.x`, `mantel.x` and `isoenergy.x`, you requ
 
 If you are running on a system with the intel MKL available, then
 the makefile will find all of these, provided you specify the MKLROOT
-$ export MKLROOT=/path/to/mklroot
+`$ export MKLROOT=/path/to/mklroot`
 
 If not, you can install fftw and lapack using:
 - On macOS (Homebrew)
