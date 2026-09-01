@@ -169,6 +169,13 @@ python bin/W_ee.py ...
 
 ## Full pipeline
 
+#### `mantel-prep.sh`
+This script prepares all the inputs required for `mantel`, by running a `Quantum ESPRESSO` bands calculation to find the wavefunction files, and also running a `Yambo` calculation (at static RPA level) to obtain the inverse dielectric.
+
+#### `mantel-run.sh`
+This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat`.
+
+
 ```
 QE DFT -> Yambo -> wfc2bin -> prepare_yambo.py -> mantel.x -> bin_converter.py -> W_ee.py -> plotter.py
 ```
