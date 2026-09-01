@@ -29,7 +29,7 @@ setup a suitable environment for the python scripts
 ## Dependencies
 
 ### Fortran code
-
+To compile the fortran codes `wfc2bin.x`, `mantel.x` and `isoenergy.x`, you require:
 
 | Dependency    | Notes                                   |
 |---------------|-----------------------------------------|
@@ -43,39 +43,43 @@ If you are running on a system with the intel MKL available, then
 the makefile will find all of these, provided you specify the MKLROOT
 $ export MKLROOT=/path/to/mklroot
 
-
+If not, you can install fftw and lapack using
 On macOS (Homebrew):
-$ brew install fftw lapack
-
+`$ brew install fftw lapack`
 
 On Linux (apt):
-$ sudo apt install gfortran libfftw3-dev liblapack-dev libblas-dev
-
+`$ sudo apt install gfortran libfftw3-dev liblapack-dev libblas-dev`
 
 On HPC clusters, load the relevant modules (e.g. `module load fftw lapack`).
 
 ### Python scripts
+Most of the python scripts require `numpy`, and the `prepare_yambo.py` script also require `yambopy` to read the output from Yambo.
 
-See [Python environment setup](#python-environment-setup) below.
+See [Python environment setup](#python-environment-setup) below for setup.
 
 ---
 
 ## Build
+```
 $ make              # optimised build: -O3 -fopenmp -march=native
 $ make install      # install mantel.x and wfc2bin to bin/
 $ make clean        # remove build artefacts
+```
 
 By default, unless you have MKLROOT set (at which point the makefile 
 uses this), make uses `pkg-config` to locate FFTW3. If FFTW is not on your `PKG_CONFIG_PATH`, or you do not have `pkg-config`, override with:
-
+```
 $ make FFTW_DIR=/path/to/fftw
-
+```
 For example, with a manual install at `/opt/fftw`:
+```
 $ make FFTW_DIR=/opt/fftw
+```
 
 A profile/debug build is also available:
+```
 $ make BUILD=profile   # -O0 -g -pg
-
+```
 
 ---
 
