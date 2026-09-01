@@ -169,22 +169,25 @@ python bin/W_ee.py ...
 
 ## Full pipeline
 
-#### `mantel-prep.sh`
+The pipeline consists of two high-level scripts 
+#### Step 1. `mantel-prep.sh`
 This script prepares all the inputs required for `mantel`, by running a `Quantum ESPRESSO` bands calculation to find the wavefunction files, and also running a `Yambo` calculation (at static RPA level) to obtain the inverse dielectric.
 
-#### `mantel-run.sh`
+#### Step 2. `mantel-run.sh`
 This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat`.
 
 
 
 |     code      |     Description                  |
 |---------------|----------------------------------|
-| mantel-gen.py | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
-| mantel-xml.py | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
-| wfc2bin.x    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
-| qe_driver.sh |  Obtains the QE wavefunctions   |
-| yambo_driver.sh | Runs the RPA Yambo calculation |
-|-----------------|--------------------------------|
+| `mantel-gen.py` | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
+| `mantel-xml.py` | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
+| `wfc2bin.x`    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
+| `mantel.x`   | Calculates $W_{n,\mathbf{k}, m, \mathbf{k+q}}$ stored in `W_iq.bin` |
+| `isoenergy.x`  |  Performs isoenergy average to return $W(\varepsilon, \varepsilon')$ in `W_ee.dat` |
+| `qe_driver.sh` |  Obtains the QE wavefunctions   |
+| `yambo_driver.sh` | Runs the RPA Yambo calculation |
+
 
 
 
