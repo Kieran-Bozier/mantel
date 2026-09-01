@@ -44,13 +44,13 @@ the makefile will find all of these, provided you specify the MKLROOT
 `$ export MKLROOT=/path/to/mklroot`
 
 If not, you can install fftw and lapack using:
-- On macOS (Homebrew)
+- On macOS (Homebrew): 
 `$ brew install fftw lapack`
 
-- On Linux (apt)
+- On Linux (apt): 
 `$ sudo apt install gfortran libfftw3-dev liblapack-dev libblas-dev`
 
-- On HPC clusters 
+- On HPC clusters: 
 Load the relevant modules (e.g. `module load fftw lapack`).
 
 ### Python scripts
