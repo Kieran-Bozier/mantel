@@ -184,7 +184,7 @@ A summary of the codes is shown below. All codes come with a `-h` helper.
 | `mantel-gen.py` | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
 | `mantel-xml.py` | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
 | `wfc2bin.x`    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
-| `mantel.x`   | Calculates $W_{n,\mathbf{k}, m, \mathbf{k+q}}$ stored in `W_iq.bin` |
+| `mantel.x`   | Calculates $W_{n,\mathbf{k}, m, \mathbf{k+q}}$ and stores in `W_iq.bin` for each $q$ |
 | `isoenergy.x`  |  Performs isoenergy average to return $W(\varepsilon, \varepsilon')$ in `W_ee.dat` |
 | `qe_driver.sh` |  Obtains the QE wavefunctions   |
 | `yambo_driver.sh` | Runs the RPA Yambo calculation |
@@ -193,67 +193,12 @@ A summary of the codes is shown below. All codes come with a `-h` helper.
 
 ---
 
-## Running `mantel.x`
-
-`mantel.x` reads its configuration from stdin. Create an input file:
-
-$ cat Al.mantel.in
-&qe
-   qe_kgrid = "6 6 6"
-   nbnd     = 10
-   wfc_dir  = "WFC"
-/
-
-&yambo
-   yambo_kgrid = "6 6 6"
-   chi_bands   = 50
-   NGsBlkXs    = 4
-   yambo_dir   = "YAMBO"
-/
-
-&wfc2bin
-   Gmax = 5
-/
-
-&mantel
-   num_electrons = 3
-   in_min        = 1
-   in_max        = 10
-/
-
-CELL_PARAMETERS angstrom
-  -2.005927973   0.000000000   2.005927973
-  -0.000000000   2.005927973   2.005927973
-  -2.005927973   2.005927973   0.000000000
+## Further Details
+More information about how to run each of the codes can be found in the `/docs/` directory
 
 
-Then run:
-$ mantel.x < input.in
-
-Or for a multi-threaded run:
-$ OMP_NUM_THREADS=8 mantel.x < input.in
 
 
-See `mantel.x --help` for a full description of input/output files.
-
-### Required input files
-
-The following binary files must be present in the working directory before running `mantel.x`:
-
-```
-G_vectors.bin
-cartesian_k.bin
-yambo_qs.bin
-yambo_Gs.bin
-epsm1_unpadded.bin
-WFC/ik-1.bin
-WFC/ik-2.bin
-...
-```
-
-These are produced by `wfc2bin` and `prepare_yambo.py`.
-
----
 
 ## Running the test suite
 
