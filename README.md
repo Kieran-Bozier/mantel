@@ -42,7 +42,7 @@ setup a suitable environment for the python scripts
 Running the calculations is straightforward, and only requires a Quantum ESPRESSO scf input.
 ```
 $ ls *
-   scf.in
+scf.in
 ```
 Create the mantel.in input using
 ```
@@ -52,11 +52,10 @@ Manually modify to set parameters as desired. Then run
 the full pipeline with
 ```
 $ mantel-prep.sh -c mantel.in
-   ...
-   ...
+   ... [ output here ]  ...
+
 $ mantel-run.sh -c mantel.in
-   ...
-   ...
+   ... [ output here ] ...
 ```
 This should return a `W_ee.dat` file.
 ---
