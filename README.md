@@ -21,8 +21,9 @@ $$
 $$
 
 When solving the isotropic Eliashberg equations, we perform an isoenergy averaging of the screened Coulomb interaction. This is perfromed by the `isoenergy.x` code, and gives
+
 $$
-W(\varepsilon,\varepsilon') = \sum_{\mathbf{k},n , \mathbf{k+q},m} W_{\mathbf{k},n , \mathbf{k+q},m} \frac{\delta(\varepsilon - \varepsilon_{\mathbf{k},n})}{N(\varepsilon)} \frac{\delta(\varepsilon' - \varepsilon_{\mathbf{k+q},m})}{N(\varepsilon')}
+W(\varepsilon,\varepsilon') = \sum\_{\mathbf{k},n , \mathbf{k+q},m} W\_{\mathbf{k},n , \mathbf{k+q},m} \frac{\delta(\varepsilon - \varepsilon\_{\mathbf{k},n})}{N(\varepsilon)} \frac{\delta(\varepsilon' - \varepsilon\_{\mathbf{k+q},m})}{N(\varepsilon')}
 $$
 
 
