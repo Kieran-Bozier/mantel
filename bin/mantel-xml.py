@@ -296,9 +296,9 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
 &structure
     alat        = {alat}
     volume      = {volume}
-    cell_a1_au  = {cell[0, 0]:.10f} {cell[0, 1]:.10f} {cell[0, 2]:.10f}
-    cell_a2_au  = {cell[1, 0]:.10f} {cell[1, 1]:.10f} {cell[1, 2]:.10f}
-    cell_a3_au  = {cell[2, 0]:.10f} {cell[2, 1]:.10f} {cell[2, 2]:.10f}
+    cell_a1_au  = {cell[0, 0]:>23.16e} {cell[0, 1]:>23.16e} {cell[0, 2]:>23.16e}
+    cell_a2_au  = {cell[1, 0]:>23.16e} {cell[1, 1]:>23.16e} {cell[1, 2]:>23.16e}
+    cell_a3_au  = {cell[2, 0]:>23.16e} {cell[2, 1]:>23.16e} {cell[2, 2]:>23.16e}
 
 /
 
