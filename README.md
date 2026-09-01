@@ -58,6 +58,7 @@ $ mantel-run.sh -c mantel.in
    ... [ output here ] ...
 ```
 This should return a `W_ee.dat` file.
+
 ---
 
 ## Dependencies
