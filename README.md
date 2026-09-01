@@ -14,6 +14,14 @@ W_{\mathbf{k},n,\,\mathbf{k+q},m} &= \sum_{\mathbf{G}\mathbf{G'}} \bigg( \frac{1
 \end{aligned}
 $$
 
+where $\mathbf{k}$ is the initial wavevector, $\mathbf{k+q}$ is the final wavevector, $n$ is the initial band index and $m$ is the final band index. The summation is performed over reciprocal lattice vectors $\mathbf{G}, \mathbf{G'}$ and the scattering momentum $\mathbf{q}$ is restricted to the first Brillouin zone. The unit cell volume is denoted by $V$, and $\epsilon^{-1}_{\mathbf{G},\mathbf{G'}}(\mathbf{q}, 0)$ is the static inverse dielectric matrix, which is calculated here using the Random Phase Approximation (RPA). The terms $\rho_{\mathbf{k},n,\mathbf{k+q},m}$ are the plane wave matrix elements and are given by
+
+$$
+    \rho_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G}) = \bra{\mathbf{k+q}, m} e^{+i (\mathbf{q} + \mathbf{G})\cdot\mathbf{r}} \ket{\mathbf{k}, n}_{u.c.} 
+$$
+where the matrix element is evaluated as an integral over the unit cell.
+
+
 
 ### Quickstart
 If you have `${MKLROOT}` set, you should be able to compile the codes with:
