@@ -4,7 +4,7 @@ To run the tests, use
 $ conda activate mantel
 
 #Run
-$ nohup ./mantel-test.sh &
+$ nohup ./mantel_test.sh &
 
 By default, this script runs on 32 CPU. 
 Expected runtime (Intel(R) Xeon(R) Gold 6142 CPU @ 2.60 GHz)

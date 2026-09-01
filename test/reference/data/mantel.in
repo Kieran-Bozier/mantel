@@ -1,0 +1,34 @@
+! mantel.in file generated on 2026-09-01 22:24:23
+&qe
+    qe_kgrid         = "2 2 2"
+    nbnd            =  10
+    wfc_dir         = "./WFC"
+    scf_in          = "Al.scf.in"
+/
+
+&yambo
+    yambo_kgrid     = "2 2 2"
+    chi_bands       =  20
+    NGsBlkXs        =  5
+    yambo_dir       = "./YAMBO"
+/
+
+&wfc2bin
+    Gmax            = 5
+/
+
+&mantel
+    in_min          = 1
+    in_max          = 10
+    iq_min          = 1
+    iq_max          = -1
+    qtf_method      = "fit"
+    qtf_fit_nq      = 2
+/
+
+&isoenergy
+    numE             = 200
+    minE             = -20.0
+    maxE             = 20.0
+    sigma            = 0.2
+/
