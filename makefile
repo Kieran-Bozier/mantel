@@ -30,8 +30,27 @@ else
         endif
     endif
 
+    # BLAS/LAPACK. On macOS -lblas resolves to Accelerate, which returns
+    # complex values through a hidden first argument (the old f2c convention)
+    # while gfortran expects them in registers. The zdotc call in W_nkmp.f90
+    # then reads its arguments one slot out and segfaults. OpenBLAS uses the
+    # standard ABI, so link that instead.
+    ifeq ($(shell uname -s), Darwin)
+        ifdef OPENBLAS_DIR
+            BLAS_LIB = -L$(OPENBLAS_DIR)/lib -lopenblas
+        else
+            OPENBLAS_PREFIX := $(shell brew --prefix openblas 2>/dev/null)
+            ifeq ($(OPENBLAS_PREFIX),)
+                $(error OpenBLAS not found. Run `brew install openblas`, or set OPENBLAS_DIR=/path/to/openblas. Accelerate cannot be used - see the comment above this line in the makefile)
+            endif
+            BLAS_LIB = -L$(OPENBLAS_PREFIX)/lib -lopenblas
+        endif
+    else
+        BLAS_LIB = -llapack -lblas
+    endif
+
     INCLUDES = $(FFTW_INC) -I$(BUILD_DIR)
-    LIBS = $(FFTW_LIB) -llapack -lblas
+    LIBS = $(FFTW_LIB) $(BLAS_LIB)
 endif
 
 
