@@ -82,8 +82,7 @@ $ make install      # install mantel.x and wfc2bin to bin/
 $ make clean        # remove build artefacts
 ```
 
-By default, unless you have MKLROOT set (at which point the makefile 
-uses this), make uses `pkg-config` to locate FFTW3. If FFTW is not on your `PKG_CONFIG_PATH`, or you do not have `pkg-config`, override with:
+By default, unless you have MKLROOT set, `make` uses `pkg-config` to locate FFTW3. If FFTW is not on your `PKG_CONFIG_PATH`, or you do not have `pkg-config`, override with:
 ```
 $ make FFTW_DIR=/path/to/fftw
 ```
