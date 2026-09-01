@@ -39,7 +39,7 @@ $ make install
 You will still need to follow the conda instructions listed later to
 setup a suitable environment for the python scripts
 
-Running the calculations is straightforward, and only requires a Quantum ESPRESSO scf input.
+Provided Quantum ESPRESSO and Yambo are compiled, running the calculations is straightforward, and only requires a Quantum ESPRESSO scf input.
 ```
 $ ls *
 scf.in
@@ -174,6 +174,18 @@ This script prepares all the inputs required for `mantel`, by running a `Quantum
 
 #### `mantel-run.sh`
 This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat`.
+
+
+|     code      |     Description                  |
+---------------------------------------------------
+| mantel-gen.py | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
+| mantel-xml.py | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
+| wfc2bin.x    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
+| qe_driver.sh |  Obtains the QE wavefunctions   |
+| yambo_driver.sh | Runs the RPA Yambo calculation |
+
+
+
 
 
 ```
