@@ -43,14 +43,15 @@ If you are running on a system with the intel MKL available, then
 the makefile will find all of these, provided you specify the MKLROOT
 $ export MKLROOT=/path/to/mklroot
 
-If not, you can install fftw and lapack using
-On macOS (Homebrew):
+If not, you can install fftw and lapack using:
+- On macOS (Homebrew)
 `$ brew install fftw lapack`
 
-On Linux (apt):
+- On Linux (apt)
 `$ sudo apt install gfortran libfftw3-dev liblapack-dev libblas-dev`
 
-On HPC clusters, load the relevant modules (e.g. `module load fftw lapack`).
+- On HPC clusters 
+Load the relevant modules (e.g. `module load fftw lapack`).
 
 ### Python scripts
 Most of the python scripts require `numpy`, and the `prepare_yambo.py` script also require `yambopy` to read the output from Yambo.
