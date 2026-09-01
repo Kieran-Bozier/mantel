@@ -86,34 +86,34 @@ $ make BUILD=profile   # -O0 -g -pg
 
 ## Python environment setup
 
-The Python post-processing scripts (`prepare_yambo.py`, `W_ee.py`, `bin_converter.py`, `plotter.py`) require **conda** and the `yambopy` package.
+Several of the Python scripts require `numpy` and the `yambopy` package. One approach is to use `conda`:
 
-### 1. Install conda
-
+1. Install conda
 If you do not have conda, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/).
 
-### 2. Create the `mantel` environment
-
+2. Create the `mantel` environment
 A minimal conda environment file is provided. Run this once from the repo root:
-
+```
 $ conda env create -f environment.yml
-
+```
 
 This will:
 - Create a conda environment named `mantel`
 - Install `numpy`, `matplotlib`, and `tqdm` from conda-forge (preferred over pip for these packages)
 - Install `yambopy` via pip (not available on conda-forge)
 
-### 3. Activate the environment
-
+3. Activate the environment
+This can be done with
+```
 $ conda activate mantel
-
+```
 You must activate this environment before running any of the Python scripts. Add this to your shell startup (`.bashrc`, `.zshrc`) or job scheduler script if needed.
 
-### 4. Verify
-
+4. Verify
+Run
+```
 $ python -c "import yambopy, numpy, matplotlib, tqdm; print('Environment OK')"
-
+```
 
 ### Note for HPC job scripts
 
