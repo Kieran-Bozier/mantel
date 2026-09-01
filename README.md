@@ -17,10 +17,13 @@ $$
 where $\mathbf{k}$ is the initial wavevector, $\mathbf{k+q}$ is the final wavevector, $n$ is the initial band index and $m$ is the final band index. The summation is performed over reciprocal lattice vectors $\mathbf{G}, \mathbf{G'}$ and the scattering momentum $\mathbf{q}$ is restricted to the first Brillouin zone. The unit cell volume is denoted by $V$, and $\epsilon^{-1}\_{\mathbf{G},\mathbf{G'}}(\mathbf{q}, 0)$ is the static inverse dielectric matrix, which is calculated here using the Random Phase Approximation (RPA). The terms $\rho\_{\mathbf{k},n,\mathbf{k+q},m}$ are the plane wave matrix elements and are given by
 
 $$
-\rho\_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G}) = \left\langle \mathbf{k+q}, m \right\vert e^{+i (\mathbf{q} + \mathbf{G})\cdot\mathbf{r}} \left\vert \mathbf{k}, n \right\rangle\_{\text{u.c.}}
+\rho\_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G}) = \left\langle \mathbf{k+q}, m \right\vert e^{+i (\mathbf{q} + \mathbf{G})\cdot\mathbf{r}} \left\vert \mathbf{k}, n \right\rangle
 $$
 
-where the matrix element is evaluated as an integral over the unit cell.
+When solving the isotropic Eliashberg equations, we perform an isoenergy averaging of the screened Coulomb interaction. This is perfromed by the `isoenergy.x` code, and gives
+$$
+W(\varepsilon,\varepsilon') = \sum_{\mathbf{k},n , \mathbf{k+q},m} W_{\mathbf{k},n , \mathbf{k+q},m} \frac{\delta(\varepsilon - \varepsilon_{\mathbf{k},n})}{N(\varepsilon)} \frac{\delta(\varepsilon' - \varepsilon_{\mathbf{k+q},m})}{N(\varepsilon')}
+$$
 
 
 
