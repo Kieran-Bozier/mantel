@@ -5,7 +5,7 @@ set -euo pipefail
 ##############################################################################################
 #        This script runs the second stage of the calculation                                #
 #        ---------------------------------------------------------------                     #
-#         (1)    Runs mantel-xml.py to create the mantel.nml file                            #
+#         (1)    Runs mantel_xml.py to create the mantel.nml file                            #
 #         (2)    Runs wfc2bin to convert QE wfc.dat files to .bin format                     #
 #         (3)    Runs prepare_yambo to write yambo results in .bin format                    #
 #         (4)    Runs mantel.x to compute the W_nkmp                                         #
@@ -37,9 +37,6 @@ fail() {
     exit 1
 }
 
-# Read a key from a named namelist block in a file.
-# Handles: whitespace around =, surrounding quotes.
-# If a key appears multiple times within the block, the last occurrence wins.
 read_cfg() {
     local file="$1" block="$2" key="$3"
     # Use awk to extract lines between &block and next /
@@ -100,19 +97,19 @@ if [ -z "$yambo_dir" ]; then yambo_dir=YAMBO; fi
 
 # ----------   Logging   ----------
 
-LOG_FILE="mantel-run.log"
+LOG_FILE="mantel_run.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "[$(timestamp)] Logging to ${LOG_FILE}"
 
 echo "========================================"
-echo "  mantel-run  $(date '+%Y-%m-%d %H:%M:%S')"
+echo "  mantel_run  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "  config=$cfg_file"
 echo "========================================"
 RUN_START=$SECONDS
 
 # ----------   Pre-flight checks   ----------
 #Check the commands exist
-for cmd in mantel-xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x; do
+for cmd in mantel_xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x; do
     command -v "$cmd" &>/dev/null || fail "'$cmd' not found in PATH."
 done
 
@@ -124,14 +121,14 @@ python3 -c "import yambopy" 2>/dev/null || fail "yambopy not found — please ac
 [ -d "${yambo_dir}/RPA" ]         || fail "${yambo_dir}/RPA directory not found."
 
 for f in xml/scf.xml xml/bands.xml xml/nscf.xml; do
-    [ -f "$f" ] || fail "$f not found (needed by mantel-xml.py)."
+    [ -f "$f" ] || fail "$f not found (needed by mantel_xml.py)."
 done
 
 # ----------   Pipeline   ----------
 
-#mantel-xml
-step "mantel-xml"
-mantel-xml.py || fail "mantel-xml.py failed."
+#mantel_xml
+step "mantel_xml"
+mantel_xml.py || fail "mantel_xml.py failed."
 step_done
 
 # wfc2bin

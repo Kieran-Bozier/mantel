@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# mantel-prep.sh — Stage 1 of the mantel pipeline
+# mantel_prep.sh — Stage 1 of the mantel pipeline
 # Runs QE (SCF + bands) followed by Yambo (SCF + NSCF + RPA).
-# Stage 2 (wfc2bin → mantel.x → post-processing) is handled by mantel-run.sh.
+# Stage 2 (wfc2bin → mantel.x → post-processing) is handled by mantel_run.sh.
 
 
 # ----------   Helpers   ----------
@@ -12,7 +12,7 @@ usage() {
     echo "Usage: $0 -c [seed].mantel.in [-n num_np] [-h]"
     echo ""
     echo "Run the DFT prep stage: QE (SCF + bands) → Yambo (SCF + NSCF + RPA)."
-    echo "Results are then ready for Stage 2: mantel-run.sh."
+    echo "Results are then ready for Stage 2: mantel_run.sh."
     echo ""
     echo "Options:"
     echo "  -c   Input file (required), e.g. Al.mantel.in"
@@ -20,10 +20,10 @@ usage() {
     echo "  -h   Show this help message"
     echo ""
     echo "Template Input file can be generated with: "
-    echo "\$ mantel-gen.py [seed].mantel.in"
+    echo "\$ mantel_gen.py [seed].mantel.in"
     echo ""
     echo "Or for a Template with more details on variables:"
-    echo "\$ mantel-gen.py -v [seed].mantel.in"
+    echo "\$ mantel_gen.py -v [seed].mantel.in"
     exit "${1:-1}"
 }
 
@@ -84,12 +84,12 @@ done
 
 # ----------   Logging   ----------
 
-LOG_FILE="mantel-prep.log"
+LOG_FILE="mantel_prep.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "[$(timestamp)] Logging to ${LOG_FILE}"
 
 echo "========================================"
-echo "  mantel-prep  $(date '+%Y-%m-%d %H:%M:%S')"
+echo "  mantel_prep  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "========================================"
 RUN_START=$SECONDS
 
@@ -107,8 +107,8 @@ step_done
 echo "========================================"
 echo "  Prep complete.  Total: $((SECONDS - RUN_START))s"
 echo ""
-echo "  Next step — run mantel-run.sh:"
-echo "    mantel-run.sh -c ${cfg_file}"
+echo "  Next step — run mantel_run.sh:"
+echo "    mantel_run.sh -c ${cfg_file}"
 echo "========================================"
 
 wait

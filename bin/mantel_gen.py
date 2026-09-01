@@ -42,7 +42,7 @@ def default_input():
     minE             = -20.0
     maxE             = 20.0
     sigma            = 0.2
-/"""
+/ """
     return contents
 
 
@@ -113,7 +113,7 @@ def verbose_input():
 
     ! Width of Gaussian smearing in eV to use when evaluating W(e,e'). 
     sigma            = 0.2
-/"""
+/ """
     return contents
 
 
