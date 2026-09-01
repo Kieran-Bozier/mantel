@@ -20,12 +20,13 @@ $$
 \rho\_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G}) = \left\langle \mathbf{k+q}, m \right\vert e^{+i (\mathbf{q} + \mathbf{G})\cdot\mathbf{r}} \left\vert \mathbf{k}, n \right\rangle
 $$
 
-When solving the isotropic Eliashberg equations, we perform an isoenergy averaging of the screened Coulomb interaction. This is perfromed by the `isoenergy.x` code, and gives
+When solving the isotropic Eliashberg equations, we perform an isoenergy averaging of the screened Coulomb interaction. This is performed by the `isoenergy.x` code, and gives
 
 $$
-W(\varepsilon,\varepsilon') = \sum\_{\mathbf{k},n , \mathbf{k+q},m} W\_{\mathbf{k},n , \mathbf{k+q},m} \frac{\delta(\varepsilon - \varepsilon\_{\mathbf{k},n})}{N(\varepsilon)} \frac{\delta(\varepsilon' - \varepsilon\_{\mathbf{k+q},m})}{N(\varepsilon')}
+W(\varepsilon,\varepsilon') = \sum\_{\mathbf{k},n , \mathbf{k+q},m} W\_{\mathbf{k},n , \mathbf{k+q},m} \frac{\delta(\varepsilon - \varepsilon\_{\mathbf{k},n})}{N(\varepsilon)} \frac{\delta(\varepsilon' - \varepsilon\_{\mathbf{k+q},m})}{N(\varepsilon')}.
 $$
 
+The resulting `W_ee.dat` file can be passed to [`IsoME`](https://github.com/cheil/IsoME.jl) to solve the Isotropic Eliashberg equations.
 
 
 
