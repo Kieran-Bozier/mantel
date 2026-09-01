@@ -1,6 +1,6 @@
 # Mantel
 
-### Bloch-basis evaluation of the screened Coulomb interaction 
+### Overview
 
 `Mantel` computes the screened Coulomb interaction matrix elements $W_{\mathbf{k},n , \mathbf{k+q},m}$ in the Bloch basis using DFT wavefunctions from [`Quantum ESPRESSO`](https://www.quantum-espresso.org/) and an inverse dielectric matrix from [`Yambo`](https://www.yambo-code.eu/). 
 
