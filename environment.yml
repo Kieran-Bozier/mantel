@@ -8,6 +8,7 @@ dependencies:
   - matplotlib
   - scienceplots
   - tqdm
+  - pytest
   - pip
   - pip:
     - yambopy

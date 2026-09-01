@@ -37,7 +37,7 @@ contains
         open(newunit=unit, file="mantel.nml", status='old', action='read', iostat=ios)
         if (ios /= 0) then
             print *, "Error: could not open mantel.nml"
-            print *, "Run mantel-xml.py on the QE xml files to generate it."
+            print *, "Run mantel_xml.py on the QE xml files to generate it."
             error stop "Fatal error opening mantel.nml"
         end if
     end subroutine open_nml  
@@ -144,7 +144,7 @@ contains
             print *, "Error: number of yambo 𝝐^-1 bands must be positive. nbnd = ", chi_nbnd
             error stop 
         end if 
-        
+
     end subroutine read_bands_namelist
 
 

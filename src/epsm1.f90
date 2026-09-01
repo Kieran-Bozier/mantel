@@ -42,7 +42,6 @@ contains
     end do
 
     !>Table should be built - check if any entries are still zero (indicating missing G-vectors)
-    !>Sa
     do h = min_h, max_h
         do k = min_k, max_k
             do l = min_l, max_l

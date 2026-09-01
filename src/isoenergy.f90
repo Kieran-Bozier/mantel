@@ -125,7 +125,7 @@ program isoenergy
     real(dp),parameter                  ::  pi = 4.0_dp * atan(1.0_dp)
     real(dp),parameter                  ::  Ha_to_eV = 27.211386_dp
 
-    real(dp),allocatable                ::  band_energies(:,:)   ! (nbnd, numK) because of transpose in mantel-xml
+    real(dp),allocatable                ::  band_energies(:,:)   ! (nbnd, numK) because of transpose in mantel_xml
     real(dp),allocatable                ::  q_weights(:) 
     real(dp)                            ::  wq
     integer                             ::  numBands, numK

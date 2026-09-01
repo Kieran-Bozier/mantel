@@ -41,7 +41,6 @@ end interface load_array
 
 
 contains
-!>   First we define implementation for real arrays of different ranks
 
 
 !>===================================================
