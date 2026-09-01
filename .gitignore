@@ -5,3 +5,6 @@ test/Al/
 test/Nb/
 test/Ta/
 test/H3S/
+__pycache__/
+*.pyc
+.pytest_cache
