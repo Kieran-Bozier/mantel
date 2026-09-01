@@ -39,6 +39,26 @@ $ make install
 You will still need to follow the conda instructions listed later to
 setup a suitable environment for the python scripts
 
+Running the calculations is straightforward, and only requires a Quantum ESPRESSO scf input.
+```
+$ ls *
+   scf.in
+```
+Create the mantel.in input using
+```
+$ mantel-gen.py -v mantel.in
+```
+Manually modify to set parameters as desired. Then run
+the full pipeline with
+```
+$ mantel-prep.sh -c mantel.in
+   ...
+   ...
+$ mantel-run.sh -c mantel.in
+   ...
+   ...
+```
+This should return a `W_ee.dat` file.
 ---
 
 ## Dependencies
@@ -76,6 +96,7 @@ See [Python environment setup](#python-environment-setup) below for setup.
 ---
 
 ## Build
+To build the optimised executables, use
 ```
 $ make              # optimised build: -O3 -fopenmp -march=native
 $ make install      # install mantel.x and wfc2bin to bin/
