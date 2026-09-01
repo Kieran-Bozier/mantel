@@ -48,6 +48,16 @@ else
     FFLAGS = $(FFLAGS_FAST)
 endif
 
+# Module systems often export FFTW_INC and FFTW_LIB as bare directories, and
+# make imports environment variables, so a config that leaves them unset can
+# silently put a plain path on the compile line. Catch that here rather than
+# leaving the compiler to warn about it.
+ifneq ($(strip $(FFTW_INC)),)
+    ifeq ($(filter -I%,$(FFTW_INC)),)
+        $(error FFTW_INC is a bare path, not a -I flag: '$(FFTW_INC)'. Your environment probably set it - assign it explicitly in config/$(CONFIG).mk)
+    endif
+endif
+
 INCLUDES = $(FFTW_INC) -I$(BUILD_DIR)
 LIBS     = $(FFTW_LIB) $(BLAS_LIB)
 

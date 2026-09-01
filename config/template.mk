@@ -9,6 +9,11 @@ $(error config/template.mk is a starting point to copy, not a config to build wi
 # Set only what differs from the defaults. Anything left out falls back to
 # gfortran with -O3 -fopenmp -march=native, which is what the makefile assumes.
 #
+# One exception: assign FFTW_INC, FFTW_LIB and BLAS_LIB explicitly even when
+# they should be empty. Module systems commonly export FFTW_INC and FFTW_LIB
+# as bare directories, and make inherits environment variables, so "unset"
+# does not reliably mean empty. See config/lumi.mk.
+#
 # If you get mantel building somewhere new, please send the config back as a
 # pull request so the next person on that machine does not repeat the work.
 # ---------------------------------------------------------------------------

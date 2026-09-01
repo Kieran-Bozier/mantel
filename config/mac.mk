@@ -1,6 +1,6 @@
 # macOS with the homebrew toolchain:  brew install gcc fftw openblas
 #
-# OpenBLAS is a hard requirement here, not a preference. Accelerate returns
+# OpenBLAS is a requirement here. Accelerate returns
 # complex values through a hidden first argument (the old f2c convention)
 # while gfortran expects them in registers, so the zdotc call in W_nkmp.f90
 # reads its arguments one slot out and dies with SIGSEGV or SIGBUS - inside
