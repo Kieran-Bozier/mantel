@@ -1,65 +1,55 @@
-FC       = gfortran
-VPATH    = src
+VPATH     = src
 BUILD_DIR = build
-BUILD   ?= fast
-ARCH ?= -march=native
+BUILD    ?= fast
 
 #Read from here, not from any files
-.PHONY: all clean install
+.PHONY: all clean install configs
 
 
-# If we have MKL, we default to using this as we get much better performance
+# ---------------------------------------------------------------------------
+# Platform configuration
+#
+# Everything machine-specific lives in config/<name>.mk. This file holds the
+# build rules and nothing else.
+#
+#   make                 pick a config automatically
+#   make CONFIG=lumi     force a particular one
+#   make configs         list what is available
+#
+# To port to a new machine, copy config/template.mk and edit it.
+# ---------------------------------------------------------------------------
 ifdef MKLROOT
-    # MKL provides fftw3, blas and lapack interfaces
-    INCLUDES = -I$(MKLROOT)/include -I$(MKLROOT)/include/fftw
-    LIBS = -L$(MKLROOT)/lib/intel64 \
-            -Wl,--no-as-needed \
-            -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+    CONFIG ?= mkl
+else ifdef PE_ENV                      # Cray compiler wrappers: LUMI, ARCHER2
+    CONFIG ?= lumi
+else ifeq ($(shell uname -s), Darwin)
+    CONFIG ?= mac
 else
-    #No mkl, use standard fftw3, blas, lapack
-
-    # FFTW3: use FFTW_DIR if set, otherwise fall back to pkg-config
-    ifdef FFTW_DIR
-        FFTW_INC = -I$(FFTW_DIR)/include
-        FFTW_LIB = -L$(FFTW_DIR)/lib -lfftw3 -lfftw3_omp
-    else
-        FFTW_INC := $(shell pkg-config --cflags fftw3 2>/dev/null)
-        FFTW_LIB := $(shell pkg-config --libs fftw3 2>/dev/null) -lfftw3_omp
-        ifeq ($(FFTW_INC),)
-            $(error FFTW3 not found. Set FFTW_DIR=/path/to/fftw or ensure pkg-config can find fftw3)
-        endif
-    endif
-
-    # BLAS/LAPACK. On macOS -lblas resolves to Accelerate, which returns
-    # complex values through a hidden first argument (the old f2c convention)
-    # while gfortran expects them in registers. The zdotc call in W_nkmp.f90
-    # then reads its arguments one slot out and segfaults. OpenBLAS uses the
-    # standard ABI, so link that instead.
-    ifeq ($(shell uname -s), Darwin)
-        ifdef OPENBLAS_DIR
-            BLAS_LIB = -L$(OPENBLAS_DIR)/lib -lopenblas
-        else
-            OPENBLAS_PREFIX := $(shell brew --prefix openblas 2>/dev/null)
-            ifeq ($(OPENBLAS_PREFIX),)
-                $(error OpenBLAS not found. Run `brew install openblas`, or set OPENBLAS_DIR=/path/to/openblas. Accelerate cannot be used - see the comment above this line in the makefile)
-            endif
-            BLAS_LIB = -L$(OPENBLAS_PREFIX)/lib -lopenblas
-        endif
-    else
-        BLAS_LIB = -llapack -lblas
-    endif
-
-    INCLUDES = $(FFTW_INC) -I$(BUILD_DIR)
-    LIBS = $(FFTW_LIB) $(BLAS_LIB)
+    CONFIG ?= generic
 endif
 
+ifeq ($(wildcard config/$(CONFIG).mk),)
+    $(error No config '$(CONFIG)'. Available: $(patsubst config/%.mk,%,$(wildcard config/*.mk)))
+endif
+include config/$(CONFIG).mk
+
+# Whatever the config did not set falls back to the gfortran defaults.
+# FC needs the origin test because make predefines it.
+ifeq ($(origin FC), default)
+    FC = gfortran
+endif
+ARCH           ?= -march=native
+FFLAGS_FAST    ?= -O3 -fopenmp -fbacktrace $(ARCH) -flto -funroll-loops
+FFLAGS_PROFILE ?= -O0 -g -pg -Wall -fcheck=all -fopenmp
 
 ifeq ($(BUILD), profile)
-    FFLAGS = -O0 -g -pg -Wall -fcheck=all -fopenmp
+    FFLAGS = $(FFLAGS_PROFILE)
 else
-    FFLAGS = -O3 -fopenmp -fbacktrace $(ARCH) -flto -funroll-loops 
+    FFLAGS = $(FFLAGS_FAST)
 endif
 
+INCLUDES = $(FFTW_INC) -I$(BUILD_DIR)
+LIBS     = $(FFTW_LIB) $(BLAS_LIB)
 
 
 MODULES = precision.f90 \
@@ -85,7 +75,7 @@ WFC_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
 ISO_SRC  = isoenergy.f90
 ISO_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
             read_mantel_in.o read_mantel_nml.o $(ISO_SRC:.f90=.o))
- 
+
 
 EXEC     = $(BUILD_DIR)/mantel.x
 WFC_EXEC = $(BUILD_DIR)/wfc2bin.x
@@ -115,12 +105,16 @@ install: all
 	install -m 755 $(WFC_EXEC) $(BINDIR)/wfc2bin.x
 	install -m 755 $(ISO_EXEC) $(BINDIR)/isoenergy.x
 
+configs:
+	@echo "Available configs (make CONFIG=<name>), currently using '$(CONFIG)':"
+	@printf '  %s\n' $(patsubst config/%.mk,%,$(wildcard config/*.mk))
+
 clean:
 	rm -rf $(BUILD_DIR)
 
 # Module dependency order
 $(BUILD_DIR)/mantel.o:   $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o))
 $(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
-                        $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o 
+                        $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
 $(BUILD_DIR)/isoenergy.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
                         $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
