@@ -62,7 +62,7 @@ contains
         !> Optimise the rho function by taking in the precomputed wavfunctions on real grid
         !> This reduces the number of FFT calls required
         !>
-        !> Be aware that this is NOT a FT of the density/overlap, but rather in inverse FT
+        !> Be aware that this is NOT a FT of the density/overlap, but rather an inverse FT
         !> because the berkeleyGW code uses the e^{+i G.r} convention
         implicit none
         !---- Arguments ----
@@ -166,13 +166,11 @@ contains
             do j = 1, small_dims(2)
                 do i = 1, small_dims(1)
                     
-                    ! --- X Dimension Logic ---
                     if (i <= mid(1)) then
                         ! Positive Freqs (0, 1, 2...): Copy directly
                         i_in = i 
                     else
                         ! Negative Freqs (-1, -2...): Wrap from end of Large
-                        ! e.g. i=7 (Freq -1) -> takes from end of Large
                         i_in = double_dims(1) - (small_dims(1) - i)
                     end if
 

@@ -27,7 +27,6 @@ contains
             error stop
         end if 
 
-        !> spacing. If N elements there are N-1 spaces
         delta = ((max) - (min)) / (num - 1)
 
         do i = 1, num
@@ -55,14 +54,6 @@ contains
 
     subroutine write_W_ee_dat(filename, energy_grid, W_ee, sigma)
         !> Writes W(e,e') in the gnuplot block format that IsoME reads.
-        !>
-        !> Each row is:   e    e'    W(e,e')
-        !> with a blank line between blocks of constant e, which is what
-        !> tells gnuplot the data is a surface rather than a single curve.
-        !>
-        !> W_ee is expected to be already normalised by dos(e)*dos(e').
-        !> Energies are relative to the Fermi level, so the header records
-        !> the Fermi energy as zero.
 
         character(len=*), intent(in)    :: filename
         real(dp), intent(in)            :: energy_grid(:)
@@ -75,7 +66,6 @@ contains
 
         numE = size(energy_grid)
 
-        !> The grid has to match both sides of the matrix
         if (size(W_ee, 1) /= numE .or. size(W_ee, 2) /= numE) then
             print *, "Error: W_ee is ", size(W_ee, 1), "x", size(W_ee, 2), &
                      " but the energy grid has ", numE, " points"
@@ -90,11 +80,11 @@ contains
             error stop "Fatal error writing W_ee.dat"
         end if
 
-        write(out_unit, '("# Fermi energy [eV] = 0.  Smearing width (sigma) [eV] = ", F0.6)') sigma
+        write(out_unit, '("# Fermi energy [eV] = 0.  Smearing width (sigma) [eV] = ", F9.6)') sigma
         write(out_unit, '("# energy (e) [eV]      energy (e'') [eV]       W(e,e'') [eV]")')
 
         do ie = 1, numE
-            !> Blank line between blocks, but not before the first one
+            !> Blank line between blocks
             if (ie > 1) write(out_unit, '(A)') ""
 
             do je = 1, numE
@@ -108,6 +98,40 @@ contains
     end subroutine write_W_ee_dat
 
 
+    subroutine write_dos_dat(filename, energy_grid, dos, sigma)
+        !> Writes the dos file
+        !>
+        !> TO DO: implement integrated DOS to match the QE .dos.dat format
+        character(len=*),intent(in)             ::  filename 
+        real(dp),intent(in)                     ::  energy_grid(:) 
+        real(dp),intent(in)                     ::  dos(:) 
+        real(dp),intent(in)                     ::  sigma
+        real(dp),allocatable                    ::  int_dos(:)
+        integer                                 ::  numE, ie, out_unit, ios 
+        real(dp)                                ::  dE
+    
+        numE = size(energy_grid)
+        dE = energy_grid(2) - energy_grid(1)
+        allocate(int_dos(numE))
+
+        open(newunit=out_unit, file=trim(filename), status='replace', &
+             action='write', iostat=ios)
+        if (ios /= 0) then
+            print *, "Error: could not open ", trim(filename)
+            error stop "Fatal error writing dos.dat"
+        end if
+        
+        int_dos = 0.0_dp
+        write(out_unit, '("# Energy (eV)    dos (states/eV/spin)")')
+        write(out_unit, '("# Sigma = ", F9.6, " eV" )') sigma 
+        do ie = 1, numE
+            write(out_unit, '(ES17.10E2, 5X, ES17.10E2)') energy_grid(ie), dos(ie)
+        end do
+        close(out_unit)
+    end subroutine write_dos_dat
+
+
+
 
 end module isoenergy_module
 
@@ -116,7 +140,7 @@ end module isoenergy_module
 program isoenergy
     use precision,                  only: dp, ic
     use array_io,                   only: load_array, save_array
-    use isoenergy_module,           only: linspace, write_W_ee_dat
+    use isoenergy_module,           only: linspace, write_W_ee_dat, write_dos_dat
     use read_mantel_in,             only: open_file, read_mantel_namelist, read_isoenergy_namelist, &
                                             in_min, in_max, iq_min, iq_max, numE, minE, maxE, sigma
     use read_mantel_nml,            only: open_nml, read_system_namelist, scf_fermi
@@ -285,7 +309,8 @@ program isoenergy
         end do
     end do 
 
-    !> Write out the array in the .dat format
+    !> Write out the arrays in the .dat format
     call write_W_ee_dat("W_ee.dat", energy_grid, W_ee_norm, sigma)
+    call write_dos_dat("dos.dat", energy_grid, dos, sigma)
 
 end program isoenergy
