@@ -47,7 +47,6 @@ contains
         print *, ""
         print *, " Returns:"
         print *, "  W_ee.dat in format that can be read by IsoME"
-        print *, "  mu.dat gives value of mu as function of smearing"
         print *, "========================================================"
         print *   
     end subroutine print_help
@@ -140,7 +139,7 @@ end module isoenergy_module
 program isoenergy
     use precision,                  only: dp, ic
     use array_io,                   only: load_array, save_array
-    use isoenergy_module,           only: linspace, write_W_ee_dat, write_dos_dat
+    use isoenergy_module,           only: linspace, write_W_ee_dat, write_dos_dat, print_help
     use read_mantel_in,             only: open_file, read_mantel_namelist, read_isoenergy_namelist, &
                                             in_min, in_max, iq_min, iq_max, numE, minE, maxE, sigma
     use read_mantel_nml,            only: open_nml, read_system_namelist, scf_fermi
@@ -174,6 +173,20 @@ program isoenergy
     complex(dp),allocatable             ::  W_iq(:,:,:)
     real(dp),allocatable                ::  Wk(:,:), W_ee(:,:), W_ee_norm(:,:), A(:,:), B(:,:), T(:,:)
     real(dp),parameter                  ::  tolerance=1.0e-5_dp
+
+    integer                             ::  nargs 
+    character(len=16)                   ::  arg
+
+
+    !> Help function
+    nargs = command_argument_count()
+    if (nargs > 0) then
+        call get_command_argument(1, arg)
+        if (trim(arg) == '-h' .or. trim(arg) == '--help') then
+            call print_help()
+            stop 0
+        end if
+    end if
 
 
     !> Load all the variables from .mantel.in and .mantel.nml

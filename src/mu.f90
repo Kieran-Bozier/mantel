@@ -36,6 +36,24 @@ contains
         end do
     end subroutine linspace
 
+
+    subroutine print_help()
+        print *, "========================================================"
+        print *, "                          Mu              "
+        print *, "========================================================"
+        print *, " Usage:"
+        print *, "  mu.x < prefix.mantel.in  "
+        print *, ""
+        print *, "  Reads in W_iq.bin files along with band_energies.bin"
+        print *, "  and q_weights.bin to calculate the FS averaged << W >> "
+        print *, "  and multiply by DOS to give µ = Nf * <<W>>"
+        print *, ""
+        print *, " Returns:"
+        print *, "  mu.dat gives value of mu as function of smearing"
+        print *, "========================================================"
+        print *   
+    end subroutine print_help
+
     subroutine write_mu_table(unit, sigma_values, gauss_nef, gauss_nef_Ry, &
         W_00, mu_values, mu_rescaled, nef, scf_fermi)
         !> Writes the mu(sigma) table to an already-open unit. Shared by
@@ -114,7 +132,7 @@ end module mu_module
 program mu 
     use precision,                  only: dp, ic 
     use array_io,                   only: load_array, save_array 
-    use mu_module,                  only: linspace, write_mu_dat, write_mu_table 
+    use mu_module,                  only: linspace, write_mu_dat, write_mu_table, print_help
     use read_mantel_in,             only: open_file, read_mantel_namelist, read_mu_namelist, &
                                             in_min, in_max, iq_min, iq_max, min_sigma, max_sigma, num_sigma, nef
     use read_mantel_nml,            only: open_nml, read_system_namelist, scf_fermi
@@ -151,6 +169,20 @@ implicit none
 
     real(dp),parameter                  ::  Ry_to_eV = 13.6057039763_dp
     real(dp),allocatable                ::  mu_rescaled(:), gauss_nef_Ry(:)
+
+    integer                             ::  nargs 
+    character(len=16)                   ::  arg
+
+
+   !> Help function
+    nargs = command_argument_count()
+    if (nargs > 0) then
+        call get_command_argument(1, arg)
+        if (trim(arg) == '-h' .or. trim(arg) == '--help') then
+            call print_help()
+            stop 0
+        end if
+    end if
 
 
     !> Load all the variables from .mantel.in and .mantel.nml

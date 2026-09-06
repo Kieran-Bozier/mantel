@@ -53,7 +53,7 @@ contains
 
             if (filesize <= 0 ) then
                 print *, "Error: no input file."
-                print *, "Use:  mantel.x < mantel.in    or    mantel.x -i mantel.in"
+                print *, "Use:  wfc2bin.x < mantel.in ; mantel.x < mantel.in ; isoenergy.x < mantel.in ; mu.x < mantel.in"
                 print *, "Piped input is not supported."
                 error stop "Fatal error opening input file"
             end if 
@@ -61,6 +61,7 @@ contains
         
         else
             !> Input was passed in using the mantel.x -i mantel.in format
+            !> TO BE IMPLEMENTED
             open(newunit=unit, file=trim(filename), status='old', action='read', iostat=ios)
             if (ios /= 0) then
                 print *, "Error: could not open file, ", trim(filename)
