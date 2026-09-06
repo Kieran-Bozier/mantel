@@ -86,13 +86,18 @@ ISO_SRC  = isoenergy.f90
 ISO_OBJS = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
             read_mantel_in.o read_mantel_nml.o $(ISO_SRC:.f90=.o))
 
+MU_SRC	 = mu.f90
+MU_OBJS	 = $(addprefix $(BUILD_DIR)/, precision.o array_io.o \
+              read_mantel_in.o read_mantel_nml.o $(MU_SRC:.f90=.o))
+
 
 EXEC     = $(BUILD_DIR)/mantel.x
 WFC_EXEC = $(BUILD_DIR)/wfc2bin.x
 ISO_EXEC = $(BUILD_DIR)/isoenergy.x
+MU_EXEC	 = $(BUILD_DIR)/mu.x
 BINDIR   = bin
 
-all: $(EXEC) $(WFC_EXEC) ${ISO_EXEC}
+all: $(EXEC) $(WFC_EXEC) ${ISO_EXEC} ${MU_EXEC}
 
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
@@ -101,6 +106,9 @@ $(WFC_EXEC): $(WFC_OBJS)
 	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
 
 $(ISO_EXEC): $(ISO_OBJS)
+	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
+
+$(MU_EXEC):  $(MU_OBJS)
 	$(FC) $(FFLAGS) -o $@ $^ $(LIBS)
 
 $(BUILD_DIR)/%.o: %.f90 | $(BUILD_DIR)
@@ -128,3 +136,5 @@ $(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
                         $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
 $(BUILD_DIR)/isoenergy.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
                         $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
+$(BUILD_DIR)/mu.o :	$(BUILD_DIR)/precision.o, $(BUILD_DIR)/array_io.o \
+			$(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o

@@ -31,6 +31,12 @@ module read_mantel_in
     !> &wfc2bin block variables and defaults
     integer                         ::  Gmax = 0
 
+    !> &mu block
+    real(dp)                        ::  min_sigma = 0.01_dp
+    real(dp)                        ::  max_sigma = 1.0_dp
+    integer                         ::  num_sigma = 100
+    real(dp)                        ::  nef = -1.0
+
 
 contains
 
@@ -162,7 +168,7 @@ contains
 
 
     subroutine read_wfc2bin_namelist(unit)
-        !> Reads the mantel namelist 
+        !> Reads the wfc2bin namelist 
         integer, intent(in)         ::  unit 
         integer                     ::  ios 
         
@@ -177,6 +183,35 @@ contains
             error stop
         end if
     end subroutine read_wfc2bin_namelist
+
+    subroutine read_mu_namelist(unit)
+        !> Reads the mu namelist 
+        integer, intent(in)         ::  unit 
+        integer                     ::  ios 
+        
+        namelist /mu/ min_sigma, max_sigma, num_sigma, nef 
+
+        rewind(unit)
+        read(unit, nml=mu, iostat=ios)
+        call check_namelist("mu",ios)
+        
+        if (min_sigma <= 0) then 
+            print *, "Error: smearing width must be positive. Min_sigma = ", min_sigma, " eV"
+            error stop 
+        end if 
+
+        if (max_sigma < min_sigma) then
+            print *, "Error: max sigma ", max_sigma, "is smaller than min sigma ", min_sigma
+            error stop
+        end if 
+
+        if (num_sigma < 2) then
+            print *, "Error: require at least two smearings. num_sigma: ", num_sigma
+            error stop
+        end if 
+        
+    end subroutine read_mu_namelist
+
 
 
 
