@@ -30,7 +30,7 @@ def default_input():
 
 &mantel
     in_min          = 
-    in_max          =
+    in_max          = 
     iq_min          = 1
     iq_max          = -1
     qtf_method      = "fit"
@@ -38,11 +38,18 @@ def default_input():
 /
 
 &isoenergy
-    numE             = 200
-    minE             = -20.0
-    maxE             = 20.0
-    sigma            = 0.2
-/ """
+    numE            = 200
+    minE            = -20.0
+    maxE            = 20.0
+    sigma           = 0.2
+/ 
+
+&mu
+    min_sigma       = 0.01
+    max_sigma       = 1.00
+    num_sigma       = 100
+    nef             = -1.0
+/"""
     return contents
 
 
@@ -69,7 +76,7 @@ def verbose_input():
     ! Number of bands used to compute dielectric. Needs to be large to allow transitions to empty bands
     chi_bands       =    
 
-    ! G cutoff energy for dielectric function. Determines how many G included for \epsilon_G,G'(q,w). 
+    ! G cutoff energy for dielectric function. Determines how many G included for \\epsilon_G,G'(q,w). 
     NGsBlkXs        =
 
     ! Directory where the Yambo output files are stored
@@ -83,10 +90,10 @@ def verbose_input():
 
 &mantel
     ! Minimum band to include when evaluating W_nkmp
-    in_min          = 1
+    in_min          = 
 
-    ! Maximum band to include when evaluating W_nkmp. Set -1 to include upper limit of QE nbnd
-    in_max          = -1
+    ! Maximum band to include when evaluating W_nkmp. 
+    in_max          = 
 
     ! Minimum q to include when evaluating W_nkmp
     iq_min          = 1
@@ -105,15 +112,38 @@ def verbose_input():
     ! Number of energy points to use when evaluating W(e,e')
     numE             = 200
 
-    ! Minimum energy (compared to Fermi energy) to use when evaluating W(e,e'). 
+    ! Minimum energy (compared to Fermi energy) to use when evaluating W(e,e'). In eV.
     minE             = -20.0
 
-    ! Maximum energy (compared to Fermi energy) to use when evaluating W(e,e').
+    ! Maximum energy (compared to Fermi energy) to use when evaluating W(e,e'). In eV.
     maxE             = 20.0
 
     ! Width of Gaussian smearing in eV to use when evaluating W(e,e'). 
     sigma            = 0.2
-/ """
+/ 
+
+&mu
+    ! Minimum Gaussian smearing width (eV)
+    min_sigma       = 0.01
+
+    ! Maximum Gaussian smearing width (eV)
+    max_sigma       = 1.00
+
+    ! Number of smearings
+    num_sigma       = 100
+
+    ! True density of states at the Fermi energy (N_F).
+    ! Because Gaussian smearing often gets N_F incorrect,
+    ! you can pass in e.g. a linear tetrahedral DOS value.
+    ! mu.x will then returns a DOS rescaled value as final column
+    ! Leave as -1.0 is don't want to apply the correction 
+    !
+    ! Units: states/eV/spin
+    ! Be aware default QE .dos.dat is typically states/eV, so need to half
+    nef             = -1.0
+/
+
+"""
     return contents
 
 
