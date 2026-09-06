@@ -122,6 +122,7 @@ install: all
 	install -m 755 $(EXEC)     $(BINDIR)/mantel.x
 	install -m 755 $(WFC_EXEC) $(BINDIR)/wfc2bin.x
 	install -m 755 $(ISO_EXEC) $(BINDIR)/isoenergy.x
+	install -m 755 $(MU_EXEC)  $(BINDIR)/mu.x
 
 configs:
 	@echo "Available configs (make CONFIG=<name>), currently using '$(CONFIG)':"
@@ -136,5 +137,5 @@ $(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
                         $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
 $(BUILD_DIR)/isoenergy.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
                         $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
-$(BUILD_DIR)/mu.o :	$(BUILD_DIR)/precision.o, $(BUILD_DIR)/array_io.o \
+$(BUILD_DIR)/mu.o :	$(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
 			$(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o

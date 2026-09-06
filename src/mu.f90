@@ -62,16 +62,19 @@ contains
         write(unit, '("# Bands  in_min = ", I0, "  in_max = ", I0)') in_min, in_max
         write(unit, '("# Q-pts  iq_min = ", I0, "  iq_max = ", I0)') iq_min, iq_max
         if (nef > 0.0_dp) then
-        write(unit, '("# External N_F = ", F12.6, " states/Ry/spin")') nef
+            write(unit, '("# External N_F = ", F12.6, " states/eV/spin")') nef
+            if (gauss_nef(1) > 0.0_dp) then
+                write(unit, '("# Ratio to Gaussian N_F at smallest sigma = ", F8.3)') nef / gauss_nef(1)
+            end if
         else
         write(unit, '("# No external N_F supplied - mu rescaled column set to -1")')
         end if
-        write(unit, '("#", A13, 2X, A20, 2X, A20, 2X, A14, 2X, A10, 2X, A14)') &
+        write(unit, '("#", A13, 2X, A20, 2X, A20, 2X, A14, 2X, A10, 2X, A17)') &
         "sigma (eV)", "N_F (states/eV/spin)", "N_F (states/Ry/spin)", &
         "W(0,0) (eV)", "mu", "mu (dos rescaled)"
 
         do i = 1, numSigma
-        write(unit, '(2X, F12.4, 2X, F20.6, 2X, F20.6, 2X, F14.6, 2X, F10.6, 2X, F14.6)') &
+        write(unit, '(2X, F12.4, 2X, F20.6, 2X, F20.6, 2X, F14.6, 2X, F10.6, 2X, F17.6)') &
         sigma_values(i), gauss_nef(i), gauss_nef_Ry(i), &
         W_00(i), mu_values(i), mu_rescaled(i)
         end do
@@ -148,7 +151,6 @@ implicit none
 
     real(dp),parameter                  ::  Ry_to_eV = 13.6057039763_dp
     real(dp),allocatable                ::  mu_rescaled(:), gauss_nef_Ry(:)
-    real(dp)                            ::  nef_eV
 
 
     !> Load all the variables from .mantel.in and .mantel.nml
@@ -290,11 +292,10 @@ implicit none
 
     !> Rescaling: keep W(0,0) from this calculation, but take N_F from an
     !> external (e.g. tetrahedra) DOS rather than the Gaussian one.
-    !> nef is supplied in states/Ry/spin to match the lambda.x convention.
+    !> nef is supplied in states/eV/spin
     allocate(mu_rescaled(num_sigma))
     if (nef > 0.0_dp) then
-        nef_eV       = nef / Ry_to_eV
-        mu_rescaled  = W_00 * nef_eV
+        mu_rescaled  = W_00 * nef
     else
         !> Sentinel: no external N_F supplied
         mu_rescaled = -1.0_dp

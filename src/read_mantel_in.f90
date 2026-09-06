@@ -35,7 +35,7 @@ module read_mantel_in
     real(dp)                        ::  min_sigma = 0.01_dp
     real(dp)                        ::  max_sigma = 1.0_dp
     integer                         ::  num_sigma = 100
-    real(dp)                        ::  nef = -1.0
+    real(dp)                        ::  nef = -1.0_dp
 
 
 contains
@@ -209,7 +209,7 @@ contains
             print *, "Error: require at least two smearings. num_sigma: ", num_sigma
             error stop
         end if 
-        
+
     end subroutine read_mu_namelist
 
 
