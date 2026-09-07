@@ -1,148 +1,124 @@
 # `mantel.x` — Screened Coulomb Calculator
 
-`mantel.x` computes the screened Coulomb interaction W(n,m,k) in the Bloch basis. For
-each irreducible q-point it builds the screened interaction V_c(G,G',q) = v(G+q)·ε⁻¹(G,G',q)
-from the pre-prepared Yambo dielectric matrix, then contracts it with real-space density
-products ρ(r) = ψ\*_{nk}(r)·ψ_{mk+q}(r) (evaluated via FFT) to obtain W(n,m,k) for every
-k-point and band pair. The q=0 Coulomb singularity is replaced by Thomas-Fermi screening.
+`mantel.x` computes the screened Coulomb interaction matrix elements $W_{\mathbf{k},n , \mathbf{k+q},m}$ in the Bloch basis:
+
+$$
+\begin{aligned}
+W_{\mathbf{k},n,\mathbf{k+q},m} &= \sum_{\mathbf{G},\mathbf{G'}} \bigg( \frac{1}{V}\frac{4\pi}{\lvert\mathbf{q+G}\rvert \lvert\mathbf{q+G'}\rvert} \epsilon^{-1}_{\mathbf{G},\mathbf{G'}}(\mathbf{q}, 0)\\
+&\quad \times 
+\rho_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G}) \rho^*_{\mathbf{k},n,\mathbf{k+q},m}(\mathbf{G'}) \bigg)
+\end{aligned}
+$$
+
+For each $\mathbf{q}$-point it pads the Yambo dielectric matrix onto the full G-grid, builds
+$V_c(\mathbf{G},\mathbf{G'}) = \frac{4\pi}{\lvert\mathbf{q+G}\rvert\lvert\mathbf{q+G'}\rvert}\epsilon^{-1}_{\mathbf{G},\mathbf{G'}}$,
+and contracts it with density products $\rho(\mathbf{G})$ formed by FFT — one $W$ matrix
+per q-point, over every k-point and band pair.
 
 ---
 
-## Required Input Files
+## Inputs
 
-All files must be present in the working directory before running `mantel.x`:
+`mantel.x` reads two configuration files. The run settings you write arrive on **standard
+input**; the facts from the DFT run are read from `mantel.nml` in the working directory.
+Nothing appears in both.
 
-| File | Description |
+| File | Blocks read | Source |
+|---|---|---|
+| `<seed>.mantel.in` | `&qe`, `&mantel` | you, via `mantel_gen.py` |
+| `mantel.nml` | `&structure` (lattice vectors), `&system` (`nelec`) | `mantel_xml.py` |
+
+Every variable is documented in [inputs.md](inputs.md). The ones that change what
+`mantel.x` does are `in_min`/`in_max` (the band window), `iq_min`/`iq_max` (the q-range,
+`-1` meaning all), and `qtf_method`/`qtf_fit_nq` (see below).
+
+> **`&qe` must set `nbnd` and `scf_in` even though `mantel.x` uses neither.** They are
+> validated when the block is read, so a `mantel.in` missing them stops the run. Only
+> `wfc_dir` is actually used here.
+
+It also needs these binary files in the working directory, all described in
+[file-formats.md](file-formats.md#the-files-the-pipeline-produces):
+
+| File | Produced by |
 |---|---|
-| `G_vectors.bin` | G-vector Miller indices, shape (3, N_G), int32 |
-| `cartesian_k.bin` | Cartesian k-point coordinates, shape (3, N_k), float64 (Bohr⁻¹) |
-| `yambo_qs.bin` | Yambo q-point vectors, shape (3, N_q), float64 (Bohr⁻¹) |
-| `yambo_Gs.bin` | Yambo G-vector Miller indices, shape (3, N_Gy), int32 |
-| `epsm1_unpadded.bin` | Dielectric matrix ε⁻¹, shape (N_Gy, N_Gy, N_q), complex128 |
-| `WFC/ik-*.bin` | Wavefunction cubes, one per k-point, shape (nx, ny, nz, N_bands), complex128 |
-
-These files are produced by `wfc2bin` and `prepare_yambo.py`. See [wfc2bin.md](wfc2bin.md)
-and [post-processing.md](post-processing.md) for details.
-
----
-
-## Configuration
-
-`mantel.x` reads its configuration from **standard input** using Fortran namelists. Pass
-the `.mantel.in` file via shell redirection:
-
-```bash
-mantel.x < seed.mantel.in
-```
-
-### `&qe` namelist
-
-| Parameter | Type | Description |
-|---|---|---|
-| `wfc_dir` | string | Directory containing `WFC/ik-*.bin` wavefunction files |
-| `qe_kgrid` | string | QE k-grid string, e.g. `"8 8 8"` (read but not used by mantel.x directly) |
-| `nbnd` | integer | Total number of bands (read but not used by mantel.x directly) |
-
-### `&mantel` namelist
-
-| Parameter | Type | Description |
-|---|---|---|
-| `num_electrons` | integer | Number of valence electrons (used to compute k_F for Thomas-Fermi screening) |
-| `in_min` | integer | First band index to compute W for (1-based, inclusive) |
-| `in_max` | integer | Last band index to compute W for (1-based, inclusive) |
-
-### `CELL_PARAMETERS` block
-
-Specifies the primitive lattice vectors. Units can be `bohr` or `angstrom`:
-
-```fortran
-CELL_PARAMETERS bohr
-  a1x  a1y  a1z
-  a2x  a2y  a2z
-  a3x  a3y  a3z
-```
-
-These vectors are used to compute reciprocal lattice vectors and the real-space FFT grid.
+| `G_vectors.bin`, `cartesian_k.bin`, `<wfc_dir>/ik-*.bin` | `wfc2bin.x` |
+| `yambo_qs.bin`, `yambo_Gs.bin`, `epsm1_unpadded.bin` | `prepare_yambo.py` |
 
 ---
 
 ## Running
 
 ```bash
-# Basic run
-mantel.x < seed.mantel.in
-
-# Explicit output file
-mantel.x < seed.mantel.in > seed.mantel.out 2>&1
-
-# Control the number of OpenMP threads
-OMP_NUM_THREADS=8 mantel.x < seed.mantel.in > seed.mantel.out
-
-# Print help
-mantel.x --help
+$ mantel.x < seed.mantel.in > seed.mantel.out 2>&1
+$ OMP_NUM_THREADS=8 mantel.x < seed.mantel.in    # control thread count
+$ mantel.x -h                                    # help
 ```
 
 ---
 
-## Output Files
+## Outputs
 
-| File | Description |
+| File | Contents | Written |
+|---|---|---|
+| `W_iq<N>.bin` | $W$ for q-point `N`, shape (`numBands`, `numBands`, `nks`) | one per q-point, as each finishes |
+| `ikp_iq<N>.bin` | the k′ = k+q index map for q-point `N` | one per q-point, as each finishes |
+| `ik.bin` | the k-point index list | once, at the end |
+
+`numBands` is `in_max - in_min + 1`, so the band window sets the file size.
+
+Because `W_iq<N>.bin` and `ikp_iq<N>.bin` are written as each q-point completes, an
+interrupted run leaves valid files for the q-points it finished. Restart from where it
+stopped by setting `iq_min`.
+
+---
+
+## The $\mathbf{q} \to 0$ divergence
+
+At $\mathbf{q}=0$ the $\mathbf{G}=0$ term of $4\pi/\lvert\mathbf{q+G}\rvert^2$ diverges.
+`mantel.x` handles this by treating that one element separately: at the $\mathbf{q}=0$
+point it sets the **wings** (the $\mathbf{G}=0$ row and column) to zero and replaces the
+**head** with the Thomas-Fermi result
+
+$$
+V_c(0,0) = \frac{4\pi}{q_{TF}^2}
+$$
+
+`qtf_method` selects how $q_{TF}$ is obtained:
+
+| Method | How |
 |---|---|
-| `W_iq<N>.bin` | W(n,m,k) matrix for q-point N, shape (N_bands, N_bands, N_k), complex128 |
-| `ik.bin` | K-point index mapping, shape (N_k,), int32 |
-| `ikp_iq<N>.bin` | Mapped k'=k+q indices for each q-point N, shape (N_k,), int32 |
+| `"fit"` (default) | A Gauss-Newton least-squares fit of the computed $\epsilon^{-1}_{0,0}(\mathbf{q})$ to the Thomas-Fermi form $q^2/(q^2 + q_{TF}^2)$, over the `qtf_fit_nq` smallest non-zero $\lvert\mathbf{q}\rvert$ |
+| `"electrons"` | From the electron density alone: $k_F = (3\pi^2 n)^{1/3}$ and $q_{TF} = \sqrt{4k_F/\pi}$, using `nelec` and the cell volume |
 
-### Binary file format
+The fit uses your own dielectric matrix rather than a free-electron estimate, which is why
+it is the default. `qtf_fit_nq` must be at most `nqs - 1` — the fit skips the
+$\mathbf{q}=0$ point itself.
 
-All `.bin` files share a common header:
+If the fit converges to a non-positive $q_{TF}^2$ it warns and returns zero, and the run
+then stops with `Thomas-Fermi wavevector q_TF is too small`. With
+`qtf_method = "electrons"` that same error usually means `nelec` is wrong.
+
+On finer $\mathbf{q}$-grids this matters less: the $\Gamma$ point carries a smaller
+Brillouin-zone weight, so the substituted head contributes proportionately less to the
+final result.
+
+---
+
+## Mapping k+q onto the k-grid
+
+For each q-point, `mantel.x` maps every k+q back onto the k-grid, wrapping into the first
+Brillouin zone. Any k+q that finds no match is fatal:
 
 ```
-int32   rank          — number of array dimensions
-int32   type_id       — 1=int32, 2=float64, 3=complex128
-int32   dim[0]        — size along dimension 0
-...
-int32   dim[rank-1]   — size along dimension rank-1
-<data>                — Fortran column-major (fastest index first)
+Error: Some k+q points could not be mapped to existing k-points.
 ```
 
-Use `bin_converter.py` to convert these to NumPy `.npy` format. See
-[post-processing.md](post-processing.md).
+This normally means the Yambo q-grid is not commensurate with the QE k-grid — check `qe_kgrid` against `yambo_kgrid`.
 
 ---
 
 ## Parallelism
 
-`mantel.x` uses **OpenMP** to parallelise the inner loop over k-points for each q-point.
-Set the thread count with the `OMP_NUM_THREADS` environment variable:
-
-```bash
-export OMP_NUM_THREADS=16
-mantel.x < seed.mantel.in
-```
-
-By default, OpenMP uses all available cores. For large systems with many k-points and
-bands, the dominant cost is the FFT-based density products; scaling is typically linear
-up to the number of k-points per q-point.
-
----
-
-## Notes
-
-### q=0 (Γ-point) special case
-
-At q=0 the bare Coulomb potential v(G+q) diverges. Mantel replaces this singularity with
-**Thomas-Fermi screening**:
-
-```
-v_TF(q→0) = 4π / (q² + q_TF²)
-```
-
-where the Thomas-Fermi wavevector q_TF = √(4k_F/π) is computed from the Fermi wavevector
-k_F = (3π²n)^{1/3} using `num_electrons` and the unit cell volume.
-
-### Yambo q-point convention
-
-Yambo may return q-vectors in the Wigner-Seitz cell of the reciprocal lattice rather than
-the first Brillouin zone. When mapping k'=k+q back onto the k-grid, mantel checks both
-k+q and -(k+q) as fallback, ensuring correct k' identification regardless of Yambo's
-q-point folding convention.
+`mantel.x` is currently OpenMP-only; set the thread count with `OMP_NUM_THREADS` (the default is
+every available core). The main loop over k-points within each q-point is distributed with
+a dynamic schedule, and the dielectric build and k+q search are threaded separately.
