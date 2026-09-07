@@ -4,16 +4,15 @@
 ifdef FFTW_DIR
     FFTW_INC = -I$(FFTW_DIR)/include
     FFTW_LIB = -L$(FFTW_DIR)/lib -lfftw3 -lfftw3_omp
+
 else
-    FFTW_INC := $(shell pkg-config --cflags fftw3 2>/dev/null)
-    ifeq ($(strip $(FFTW_INC)),)
-        $(error FFTW3 not found...)
-    endif    
-    
-    FFTW_LIB := $(shell pkg-config --libs fftw3 2>/dev/null) -lfftw3_omp
-    ifeq ($(strip $(FFTW_INC)),)
+    # If exists, returns 0 and echo yes. String non-zero so doesn;t match
+    ifeq ($(shell pkg-config --exists fftw3 2>/dev/null && echo "pkg-config found fftw3"),)
         $(error FFTW3 not found. Set FFTW_DIR=/path/to/fftw or ensure pkg-config can find fftw3)
     endif
-endif
+    
+    FFTW_INC := -I$(shell pkg-config --variable=includedir fftw3)
+    FFTW_LIB := $(shell pkg-config --libs fftw3 2>/dev/null) -lfftw3_omp
+  endif
 
-BLAS_LIB = -llapack -lblas
+  BLAS_LIB = -llapack -lblas
