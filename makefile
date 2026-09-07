@@ -22,8 +22,8 @@ ifdef MKLROOT
     CONFIG ?= mkl
 else ifdef PE_ENV                      # Cray compiler wrappers: LUMI, ARCHER2
     CONFIG ?= lumi
-else ifeq ($(shell uname -s), Darwin)
-    CONFIG ?= Darwin
+else ifeq ($(shell uname -s), darwin)
+    CONFIG ?= darwin                  
 else
     CONFIG ?= generic
 endif
@@ -48,10 +48,7 @@ else
     FFLAGS = $(FFLAGS_FAST)
 endif
 
-# Module systems often export FFTW_INC and FFTW_LIB as bare directories, and
-# make imports environment variables, so a config that leaves them unset can
-# silently put a plain path on the compile line. Catch that here rather than
-# leaving the compiler to warn about it.
+
 ifneq ($(strip $(FFTW_INC)),)
     ifeq ($(filter -I%,$(FFTW_INC)),)
         $(error FFTW_INC is a bare path, not a -I flag: '$(FFTW_INC)'. Your environment probably set it - assign it explicitly in config/$(CONFIG).mk)
