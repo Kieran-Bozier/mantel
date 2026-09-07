@@ -1,90 +1,91 @@
-# `wfc2bin` — QE Wavefunction Converter
+# `wfc2bin.x` — QE Wavefunction Converter
 
-`wfc2bin` converts Quantum ESPRESSO wavefunction files (`wfc*.dat`) into padded real-space
-binary cubes that `mantel.x` can read. For each k-point it reads the plane-wave
-coefficients from QE's internal format, zero-pads them onto a uniform real-space grid of
-size (2·Gmax+1)³, and writes the result as a compact binary file. It also writes the
-corresponding G-vector list and Cartesian k-point coordinates.
+`wfc2bin.x` converts Quantum ESPRESSO wavefunction files (`wfc*.dat`) into the `ik-*.bin`
+format `mantel.x` reads. For each k-point it takes the plane-wave coefficients and
+scatters them onto a cubic $(2 G_\mathrm{max}+1)^3$ grid indexed by Miller index, in FFT
+wrap-around order, zero everywhere no coefficient was stored.
 
----
-
-## Required Input
-
-- A QE `wfc_dir` directory containing `wfc*.dat` files (one per k-point, produced by a
-  QE bands or SCF calculation with `wf_collect = .true.`)
-- The `G_vectors.bin` file is not required as input — `wfc2bin` generates it
 
 ---
 
-## Configuration
+## Inputs
 
-`wfc2bin` reads its parameters from the `&wfc2bin` and `&qe` namelist blocks in the
-unified `.mantel.in` file (passed via standard input):
+Configuration comes from `<seed>.mantel.in` on standard input, plus `mantel.nml` in the
+working directory. Every variable is documented in [inputs.md](inputs.md).
 
-```fortran
-&qe
-   wfc_dir  = "WFC"   ! directory containing wfc*.dat files
-   nbnd     = 30      ! total number of bands in the QE calculation
-/
+| Source | Read | Used for |
+|---|---|---|
+| `&wfc2bin` | `Gmax` | grid size |
+| `&mantel` | `in_min`, `in_max` | which bands to extract |
+| `&qe` | `wfc_dir` | where the wavefunctions live |
+| `mantel.nml` `&grids` | `nks` | how many k-points to expect |
 
-&wfc2bin
-   Gmax = 12   ! real-space grid half-size: output grid = (2*Gmax+1)^3
-/
-```
+> **`&qe` must also set `nbnd` and `scf_in`, which `wfc2bin.x` never uses.** They are
+> validated when the block is read, so omitting them stops the run.
 
-### Parameters
+It reads `<wfc_dir>/wfc<i>.dat` for `i = 1 … nks`, and checks up front that all of them
+exist rather than failing partway through.
 
-| Parameter | Block | Type | Description |
-|---|---|---|---|
-| `wfc_dir` | `&qe` | string | Path to the directory containing `wfc*.dat` files |
-| `nbnd` | `&qe` | integer | Total number of bands in the QE calculation |
-| `Gmax` | `&wfc2bin` | integer | Grid half-size; the output real-space grid is (2·Gmax+1)³ |
-| `in_min` | `&mantel` | integer | First band index to extract (1-based) |
-| `in_max` | `&mantel` | integer | Last band index to extract (1-based) |
+Two QE settings are rejected outright:
+
+- **`npol /= 1`** — non-collinear and spin-orbit wavefunctions are not supported.
+- **`gamma_only = .true.`** — this stores only half the G-vectors, which `mantel.x`
+  cannot use. Rerun QE without the gamma-only optimisation.
 
 ---
 
 ## Running
 
-`wfc2bin` is normally invoked automatically by `mantel-run.sh`. To run it standalone:
+Normally invoked by `mantel_run.sh`. Standalone:
 
 ```bash
-wfc2bin < seed.mantel.in
+$ wfc2bin.x < seed.mantel.in
+$ wfc2bin.x -h
 ```
 
-The working directory must contain `seed.mantel.in` and the `wfc_dir` directory must be
-populated with QE output.
+k-points are processed in parallel with OpenMP (dynamic schedule); set `OMP_NUM_THREADS`
+to control the thread count.
 
 ---
 
-## Output Files
+## Outputs
 
-All output files are written to the current working directory (G-vectors and k-points) or
-the `WFC/` subdirectory (wavefunction cubes):
+| File | Contents |
+|---|---|
+| `<wfc_dir>/ik-<N>.bin` | G-space coefficient cube for k-point `N`, shape (`nx`, `ny`, `nz`, `numBands`) |
+| `G_vectors.bin` | Miller indices of every G in the box, shape (3, `(2*Gmax+1)³`) |
+| `cartesian_k.bin` | k-point coordinates, copied from the `wfc*.dat` headers |
 
-| File | Shape | Type | Description |
-|---|---|---|---|
-| `WFC/ik-<N>.bin` | (nx, ny, nz, N_bands) | complex128 | Real-space wavefunction cube for k-point N |
-| `G_vectors.bin` | (3, N_G) | int32 | Miller indices of all G-vectors on the padded grid |
-| `cartesian_k.bin` | (3, N_k) | float64 | Cartesian coordinates of all k-points (Bohr⁻¹) |
-
-The grid dimensions are `nx = ny = nz = 2·Gmax + 1`. Each `ik-<N>.bin` file stores the
-wavefunctions for bands `in_min` through `in_max` at k-point N.
+Shapes and the binary layout are in [file-formats.md](file-formats.md). The cubes are
+written back into `wfc_dir` alongside the `wfc*.dat` files they came from, not into a
+separate directory. `nx = ny = nz = 2*Gmax + 1`, and `numBands = in_max - in_min + 1`.
 
 ---
 
 ## Choosing Gmax
 
-`Gmax` determines the real-space grid resolution. A larger value captures more
-high-frequency plane-wave components but increases memory and FFT cost quadratically:
+`Gmax` is a cutoff on the Miller index: any G-vector with a component outside
+`[-Gmax, Gmax]` is **discarded**, so too small a value silently throws away part of the
+wavefunction.
 
-| Gmax | Grid size | Points | Memory per k-point (30 bands) |
+You do not have to guess. After filling each cube, `wfc2bin.x` compares the norm it kept
+against the norm QE wrote, and warns per band when more than 0.1% is lost:
+
+```
+WARNING [WFC/ik-3.bin] band 7 retained |c|^2 fraction =   0.987421
+```
+
+**Raise `Gmax` until these warnings stop.** A clean run means the box holds essentially
+the whole wavefunction.
+
+Cost grows as the cube does — cubically in `Gmax`, in both this stage and every FFT
+`mantel.x` later performs — so take the smallest value that runs clean:
+
+| Gmax | Grid | Points | Memory per k-point (30 bands) |
 |---|---|---|---|
 | 8  | 17³ | 4,913  | ~2 MB |
 | 10 | 21³ | 9,261  | ~4 MB |
 | 12 | 25³ | 15,625 | ~7 MB |
 | 15 | 31³ | 29,791 | ~14 MB |
 
-As a rule of thumb, `Gmax` should be at least half the QE kinetic-energy cutoff expressed
-in reciprocal lattice units. The test suite uses `Gmax = 5` for speed; production
-calculations typically use `Gmax = 10–15`.
+The test suite uses `Gmax = 5` for speed; production calculations are typically 8–15.
