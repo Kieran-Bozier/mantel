@@ -13,15 +13,15 @@ BUILD    ?= fast
 # build rules and nothing else.
 #
 #   make                 pick a config automatically
-#   make CONFIG=lumi     force a particular one
+#   make CONFIG=mkl      force a particular one
 #   make configs         list what is available
 #
-# To port to a new machine, copy config/template.mk and edit it.
+# To port to a new machine, copy config/generic.mk and edit it.
 # ---------------------------------------------------------------------------
 ifdef MKLROOT
     CONFIG ?= mkl
 else ifdef PE_ENV                      # Cray compiler wrappers: LUMI, ARCHER2
-    CONFIG ?= lumi
+    CONFIG ?= cray
 else ifeq ($(shell uname -s), Darwin)
     CONFIG ?= darwin
 else
