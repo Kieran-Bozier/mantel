@@ -114,7 +114,7 @@ RUN_START=$SECONDS
 
 # ----------   Pre-flight checks   ----------
 #Check the commands exist
-for cmd in mantel_xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x; do
+for cmd in mantel_xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x mu.x; do
     command -v "$cmd" &>/dev/null || fail "'$cmd' not found in PATH."
 done
 
