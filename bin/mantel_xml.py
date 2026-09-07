@@ -337,7 +337,6 @@ def main():
     parser.add_argument("--scf",   type=Path, default="xml/scf.xml", help="The scf xml file")
     parser.add_argument("--bands", type=Path, default="xml/bands.xml", help="The bands xml file")
     parser.add_argument("--nscf",  type=Path, default="xml/nscf.xml", help="The nscf xml file")
-    parser.add_argument("--mantel", action='store_true', help="write a <prefix>.mantel.in file")
     args = parser.parse_args()
 
     info = f"""
