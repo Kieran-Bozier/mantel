@@ -23,7 +23,7 @@ ifdef MKLROOT
 else ifdef PE_ENV                      # Cray compiler wrappers: LUMI, ARCHER2
     CONFIG ?= lumi
 else ifeq ($(shell uname -s), Darwin)
-    CONFIG ?= mac
+    CONFIG ?= Darwin
 else
     CONFIG ?= generic
 endif
