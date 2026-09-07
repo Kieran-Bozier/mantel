@@ -45,10 +45,12 @@ read_cfg() {
         tail -1 |
         #Remove stuff up to and including =
         sed 's/^[^=]*=[[:space:]]*//' |
-        #Remove any quotes
-        sed "s/^['\"]//; s/['\"]$//" |
+        #Remove any inline comment
+        sed 's/[[:space:]]*!.*$//' |
         #Trim trailing whitespace
-        sed 's/[[:space:]]*$//'
+        sed 's/[[:space:]]*$//' |
+        #Remove any quotes
+        sed "s/^['\"]//; s/['\"]$//"
 }
 
 
