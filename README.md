@@ -1,7 +1,6 @@
 # Mantel
 
-
-[![CI](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml/badge.svg?branch=developer)](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml) 
+ [![CI](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml/badge.svg?branch=developer)](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml)
 
 ### Overview
 
