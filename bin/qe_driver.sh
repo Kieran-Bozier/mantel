@@ -41,6 +41,8 @@ read_cfg() {
         sed 's/^[^=]*=[[:space:]]*//' |
         #Remove any inline comment
         sed 's/[[:space:]]*!.*$//' |
+        #Remove any trailing namelist comma
+        sed 's/[[:space:]]*,[[:space:]]*$//' |
         #Trim trailing whitespace
         sed 's/[[:space:]]*$//' |
         #Remove any quotes
