@@ -6,6 +6,10 @@ ifdef FFTW_DIR
     FFTW_LIB = -L$(FFTW_DIR)/lib -lfftw3 -lfftw3_omp
 else
     FFTW_INC := $(shell pkg-config --cflags fftw3 2>/dev/null)
+    ifeq ($(strip $(FFTW_INC)),)
+        $(error FFTW3 not found...)
+    endif    
+    
     FFTW_LIB := $(shell pkg-config --libs fftw3 2>/dev/null) -lfftw3_omp
     ifeq ($(strip $(FFTW_INC)),)
         $(error FFTW3 not found. Set FFTW_DIR=/path/to/fftw or ensure pkg-config can find fftw3)
