@@ -1,5 +1,8 @@
 # Mantel
 
+
+[![CI](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml/badge.svg?branch=developer)](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml) 
+
 ### Overview
 
 `Mantel` computes the screened Coulomb interaction matrix elements $W_{\mathbf{k},n , \mathbf{k+q},m}$ in the Bloch basis using DFT wavefunctions from [`Quantum ESPRESSO`](https://www.quantum-espresso.org/) and an inverse dielectric matrix from [`Yambo`](https://www.yambo-code.eu/). 
@@ -174,7 +177,7 @@ The pipeline consists of two high-level scripts
 This script prepares all the inputs required for `mantel`, by running a `Quantum ESPRESSO` bands calculation to find the wavefunction files, and also running a `Yambo` calculation (at static RPA level) to obtain the inverse dielectric.
 
 #### Step 2. `mantel_run.sh`
-This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat` and `mu.x` calculates $\mu = N_F \times \langle \langle W \rangle \rangle \range_{FS}$.
+This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat` and `mu.x` calculates $\mu = N_F \times \langle \langle W \rangle \rangle _{FS}$.
 
 
 A summary of the codes is shown below. All codes come with a `-h` helper.
@@ -186,7 +189,7 @@ A summary of the codes is shown below. All codes come with a `-h` helper.
 | `wfc2bin.x`    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
 | `mantel.x`   | Calculates $W_{n,\mathbf{k}, m, \mathbf{k+q}}$ and stores in `W_iq.bin` for each $q$ |
 | `isoenergy.x`  |  Performs isoenergy average to return $W(\varepsilon, \varepsilon')$ in `W_ee.dat` |
-| `mu.x`         |  Calculates $\mu = N_F \times \langle \langle W \rangle \rangle \range_{FS}$ for different Gaussian smearings|
+| `mu.x`         |  Calculates $\mu = N_F \times \langle \langle W \rangle \rangle_{FS}$ for different Gaussian smearings|
 | `qe_driver.sh` |  Obtains the QE wavefunctions   |
 | `yambo_driver.sh` | Runs the RPA Yambo calculation |
 
@@ -229,3 +232,4 @@ A `CITATION.cff` file is included for machine-readable citation (used by GitHub'
 ## License
 
 MIT — see [LICENSE](LICENSE).
+

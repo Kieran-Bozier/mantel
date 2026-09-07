@@ -4,21 +4,42 @@ on: [push, pull_request]
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    strategy:
+      # Run both legs to completion. Without this, one failure cancels the
+      # other, so a platform-specific break hides whichever leg finished last.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y gfortran libfftw3-dev liblapack-dev libblas-dev
 
+      # The line from the comment at the top of config/darwin.mk. OpenBLAS is
+      # mandatory, not a preference - Accelerate's f2c calling convention
+      # segfaults the zdotc call in W_nkmp.f90.
+      - name: Install build dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install gcc fftw openblas
+
+      # A known-good Python on both platforms; the macOS image's system Python
+      # can refuse pip installs under PEP 668.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Build
         run: make ARCH=
 
- 
       - name: Confirm the binaries were produced
         run: ls -l build/*.x
 
