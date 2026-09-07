@@ -10,6 +10,7 @@ set -euo pipefail
 #         (3)    Runs prepare_yambo to write yambo results in .bin format                    #
 #         (4)    Runs mantel.x to compute the W_nkmp                                         #
 #         (5)    Runs isoenergy.x to compute W_ee.dat                                        #
+#         (6)    Runs mu.x to compute mu.dat                                                 #
 ##############################################################################################
 
 # ----------   Helpers   ----------
@@ -61,7 +62,7 @@ timestamp() {
 }
 
 #Keep track of step number and timings
-STEP=0; TOTAL=5; STEP_START=0
+STEP=0; TOTAL=6; STEP_START=0
 step() {
     STEP=$((STEP + 1))
     STEP_START=$SECONDS
@@ -153,6 +154,11 @@ step_done
 #isoenergy.x
 step "isoenergy.x"
 isoenergy.x < "${cfg_file}" > "isoenergy.out" || fail "isoenergy.x failed. See isoenergy.out"
+step_done
+
+#mu.x
+step "mu.x"
+mu.x < "${cfg_file}" > mu.out || fail "mu.x failed."
 step_done
 
 
