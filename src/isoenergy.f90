@@ -106,9 +106,10 @@ contains
         real(dp),intent(in)                     ::  dos(:) 
         real(dp),intent(in)                     ::  sigma
         real(dp),allocatable                    ::  int_dos(:)
-        integer                                 ::  numE, ie, out_unit, ios 
-        real(dp)                                ::  dE
-    
+        integer                                 ::  numE, ie, out_unit, ios
+        real(dp)                                ::  dE, dos_out
+        real(dp),parameter                      ::  dos_floor = 1.0e-30_dp
+
         numE = size(energy_grid)
         dE = energy_grid(2) - energy_grid(1)
         allocate(int_dos(numE))
@@ -124,7 +125,9 @@ contains
         write(out_unit, '("# Energy (eV)    dos (states/eV/spin)")')
         write(out_unit, '("# Sigma = ", F9.6, " eV" )') sigma 
         do ie = 1, numE
-            write(out_unit, '(ES17.10E2, 5X, ES17.10E2)') energy_grid(ie), dos(ie)
+            dos_out = dos(ie)
+            if (dos_out < dos_floor) dos_out = 0.0_dp
+            write(out_unit, '(ES17.10E2, 5X, ES17.10E2)') energy_grid(ie), dos_out
         end do
         close(out_unit)
     end subroutine write_dos_dat
