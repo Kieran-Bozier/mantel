@@ -118,8 +118,15 @@ for cmd in mantel_xml.py wfc2bin.x prepare_yambo.py mantel.x isoenergy.x mu.x; d
     command -v "$cmd" &>/dev/null || fail "'$cmd' not found in PATH."
 done
 
+
+
 #Check we are in an environment with yambopy
-python3 -c "import yambopy" 2>/dev/null || fail "yambopy not found — please activate the correct conda environment first."
+python3 -c "import yambopy" 2>/dev/null || fail "yambopy not found, or not importable by $(command -v python3). 
+If you have not done so, please activate the correct conda environment first (e.g. $ conda activate mantel). 
+Alternatively, this may indicate that python3 does not point to your conda installation. 
+You can try:
+    export PATH=\"\$CONDA_PREFIX/bin:\$PATH\"
+then check 'command -v python3' points inside the env."
 
 
 [ -d "${yambo_dir}/SAVE" ]        || fail "${yambo_dir}/SAVE directory not found."
