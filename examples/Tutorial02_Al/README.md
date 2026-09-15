@@ -1,4 +1,4 @@
-# Example 02
+# Tutorial 02
 
 In this example, we calculate the W matrix and the Coulomb parameter $\mu$ for Al.
 
@@ -15,8 +15,10 @@ the data in `/reference`.
 If you do not have `yambo` and `pw.x` available, you can still run this example 
 using the input files and reference data given in the `mantel_only` directory.
 
-You must ensure you have the correct `conda` environment loaded. 
-The simplest way to run (assuming `/mantel/bin` is on your `PATH`) is:
+You must ensure you have the correct `conda` environment loaded. Unfortunately, these Quantum Espresso wavefunctions are too large to put directly on GitHub, but you can download them from the releases using the `download_data.sh` script.
+
+Once you have extracted the `mantel_only_files.tar.gz`, the simplest way to run 
+(assuming `/mantel/bin` is on your `PATH`) is:
 ```
 $ conda activate mantel
 $ export OMP_NUM_THREADS=4
@@ -40,7 +42,7 @@ If you have both `yambo` and `pw.x` present, you can run the full
 pipeline as follows:
 ```
 $ conda activate mantel
-$ mantel_prep.sh -c mantel.in &
+$ mantel_prep.sh -n 4 -c mantel.in &
 $ export OMP_NUM_THREADS=4
 $ mantel_run.sh -c mantel.in &
 ```
