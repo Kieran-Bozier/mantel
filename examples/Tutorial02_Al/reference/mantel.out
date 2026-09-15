@@ -1,0 +1,105 @@
+
+                        ▗▖  ▗▖▗▄▄▄▖▗▖ ▗▖▗▄▄▄▖▗▄▄▄▖▗▖   
+                        ▐▛▚▞▜▌▐▌ ▐▌▐▛▖▐▌ ▐▌  ▐▌   ▐▌   
+                        ▐▌▝▘▐▌▐▛▀▜▌▐▌▝▟▌ ▐▌  ▐▛▀▘ ▐▌   
+                        ▐▌  ▐▌▐▌ ▐▌▐▌ ▐▌ ▐▌  ▐▙▄▄▖▐▙▄▄▖
+          =====================================================
+                                                
+                        Bloch basis evaluation of the    
+                         screened Coulomb interaction     
+          =====================================================
+                            Written by K. Bozier            
+                                2025 - 2026                   
+
+
+     ----------------------------------------------------------------------
+
+     Input and initialization
+     ----------------------------------------------------------------------
+     Num. electrons                           3
+     Lower band index (in_min)                1
+     Upper band index (in_max)               10
+
+     Lattice vectors (Bohr):
+             -3.813546282   -0.000000000    3.813546282
+              0.000000000    3.813546282    3.813546282
+             -3.813546282    3.813546282   -0.000000000
+
+     ----------------------------------------------------------------------
+
+     Precomputations
+     ----------------------------------------------------------------------
+     Volume (au^3)                     110.92183866
+
+     Reciprocal lattice vectors (au^-1):
+             -0.823798224   -0.823798224    0.823798224
+              0.823798224    0.823798224    0.823798224
+             -0.823798224    0.823798224   -0.823798224
+     Thomas-Fermi q_TF (au^-1)           1.05691306
+
+     ----------------------------------------------------------------------
+
+     Wavefunctions
+     ----------------------------------------------------------------------
+     WFC FFT grid                            11          11          11
+     Density FFT grid                        23          23          23
+     Number of G-vectors                   1331
+     Number of k-points                    1728
+     Number of bands per k-point             10
+
+     ----------------------------------------------------------------------
+
+     Memory estimate
+     ----------------------------------------------------------------------
+     ----------------------------------------------------------------------
+                     Global memory:        428.61 MB
+                 Memory per thread:          8.95 MB
+                      Total memory:        464.42 MB
+     ----------------------------------------------------------------------
+
+     ----------------------------------------------------------------------
+
+     Processing qpoints
+     ----------------------------------------------------------------------
+     Number of q-points                      16
+     Processing from iq                       1
+     Processing to iq                        16
+                    Completed iq =            1
+                           Wall time for this qpoint: :     14.5085 s
+                    Completed iq =            2
+                           Wall time for this qpoint: :     14.7964 s
+                    Completed iq =            3
+                           Wall time for this qpoint: :     15.4409 s
+                    Completed iq =            4
+                           Wall time for this qpoint: :     15.6824 s
+                    Completed iq =            5
+                           Wall time for this qpoint: :     15.5539 s
+                    Completed iq =            6
+                           Wall time for this qpoint: :     15.3769 s
+                    Completed iq =            7
+                           Wall time for this qpoint: :     15.4944 s
+                    Completed iq =            8
+                           Wall time for this qpoint: :     15.4276 s
+                    Completed iq =            9
+                           Wall time for this qpoint: :     15.4902 s
+                    Completed iq =           10
+                           Wall time for this qpoint: :     15.4505 s
+                    Completed iq =           11
+                           Wall time for this qpoint: :     15.6432 s
+                    Completed iq =           12
+                           Wall time for this qpoint: :     15.5983 s
+                    Completed iq =           13
+                           Wall time for this qpoint: :     15.6618 s
+                    Completed iq =           14
+                           Wall time for this qpoint: :     15.5871 s
+                    Completed iq =           15
+                           Wall time for this qpoint: :     15.5598 s
+                    Completed iq =           16
+                           Wall time for this qpoint: :     15.5012 s
+
+     ----------------------------------------------------------------------
+
+     Timing Summary
+     ----------------------------------------------------------------------
+                                      Total CPU time: :   1715.5972 s
+                                     Total Wall time: :    246.8249 s
