@@ -8,3 +8,7 @@ test/H3S/
 __pycache__/
 *.pyc
 .pytest_cache
+bin/mantel.x
+bin/wfc2bin.x
+bin/isoenergy.x
+bin/mu.x
