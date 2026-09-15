@@ -1,0 +1,91 @@
+
+
+  __ __  ____ ___ ___ ____   ___
+ |  |  |/    |   |   |    \ /   \
+ |  |  |  o  | _   _ |  o  )     |
+ |  ~  |     |  \_/  |     |  O  |
+ |___, |  _  |   |   |  O  |     |
+ |     |  |  |   |   |     |     |
+ |____/|__|__|___|___|_____|\___/
+
+
+ <---> P4: [01] MPI/OPENMP structure, Files & I/O Directories
+ <---> P4: MPI Cores-Threads   : 4(CPU)-1(threads)-1(threads@X)-1(threads@DIP)-1(threads@SE)-1(threads@RT)-1(threads@K)-1(threads@NL)
+ <---> P4: [02] CORE Variables Setup
+ <---> P4: [02.01] Unit cells
+ <---> P4: [02.02] Symmetries
+ <---> P4: [02.03] Reciprocal space
+ <---> P4: [02.04] K-grid lattice
+ <---> P4: Grid dimensions      :  2  2  2
+ <---> P4: [02.05] Energies & Occupations
+ <---> P4: [WARNING] [X] Metallic system
+ <---> P4: [03] Transferred momenta grid and indexing
+ <---> P4: [04] Dipoles
+ <---> P4: [PARALLEL DIPOLES for K(ibz) on 1 CPU] Loaded/Total (Percentual):3/3(100%)
+ <---> P4: [PARALLEL DIPOLES for CON bands on 2 CPU] Loaded/Total (Percentual):7/14(50%)
+ <---> P4: [PARALLEL DIPOLES for VAL bands on 2 CPU] Loaded/Total (Percentual):4/8(50%)
+ <---> P4: [DIP] Database not correct or missing. To be computed
+ <---> P4: [x,Vnl] computed using 18 projectors
+ <---> P4: Dipoles: P, V and iR (T) |                                        | [000%] --(E) --(X)
+ <---> P4: [PARALLEL distribution for Wave-Function states] Loaded/Total(Percentual):11/20(55%)
+ <---> P4: Dipoles: P, V and iR (T) |########################################| [100%] --(E) --(X)
+ <---> P4: [05] Static Dielectric Matrix
+ <---> P4: [PARALLEL Response_G_space_and_IO for K(bz) on 1 CPU] Loaded/Total (Percentual):8/8(100%)
+ <---> P4: [PARALLEL Response_G_space_and_IO for Q(ibz) on 1 CPU] Loaded/Total (Percentual):3/3(100%)
+ <---> P4: [PARALLEL Response_G_space_and_IO for G-vectors on 2 CPU]
+ <---> P4: [PARALLEL Response_G_space_and_IO for K-q(ibz) on 1 CPU] Loaded/Total (Percentual):3/3(100%)
+ <---> P4: [LA] SERIAL linear algebra
+ <---> P4: [PARALLEL Response_G_space_and_IO for K(ibz) on 1 CPU] Loaded/Total (Percentual):3/3(100%)
+ <---> P4: [PARALLEL Response_G_space_and_IO for CON bands on 1 CPU] Loaded/Total (Percentual):14/14(100%)
+ <---> P4: [PARALLEL Response_G_space_and_IO for VAL bands on 2 CPU] Loaded/Total (Percentual):4/8(50%)
+ <---> P4: [PARALLEL distribution for RL vectors(X) on 2 CPU] Loaded/Total (Percentual):3025/6241(48%)
+ <---> P4: [PARALLEL distribution for Wave-Function states] Loaded/Total(Percentual):48/60(80%)
+ <---> P4: [FFT-X] Mesh size:  20  20  20
+ <---> P4: [X-CG] R(p) Tot o/o(of R):    59   328   100
+ <---> P4: [WARNING] The system is a metal but Drude term not included.
+ <---> P4: [X] Upper matrix triangle filled
+ <---> P4: Xo@q[1] |                                        | [000%] --(E) --(X)
+ <---> P4: Xo@q[1] |########################################| [100%] --(E) --(X)
+ <---> P4: [WARNING] Empty workload for CPU 4
+ <---> P4: [PARALLEL distribution for X Frequencies on 4 CPU] Loaded/Total (Percentual):0/1(0%)
+ <---> P4: [PARALLEL distribution for RL vectors(X) on 2 CPU] Loaded/Total (Percentual):3160/6241(51%)
+ <---> P4: [PARALLEL distribution for RL vectors(X) on 2 CPU] Loaded/Total (Percentual):3025/6241(48%)
+ <---> P4: [X-CG] R(p) Tot o/o(of R):   120   330   100
+ <---> P4: Xo@q[2] |                                        | [000%] --(E) --(X)
+ <---> P4: Xo@q[2] |########################################| [100%] --(E) --(X)
+ <---> P4: [WARNING] Empty workload for CPU 4
+ <---> P4: [PARALLEL distribution for X Frequencies on 4 CPU] Loaded/Total (Percentual):0/1(0%)
+ <---> P4: [PARALLEL distribution for RL vectors(X) on 2 CPU] Loaded/Total (Percentual):3160/6241(51%)
+ <---> P4: [PARALLEL distribution for RL vectors(X) on 2 CPU] Loaded/Total (Percentual):3025/6241(48%)
+ <---> P4: [X-CG] R(p) Tot o/o(of R):    61   332   100
+ <---> P4: Xo@q[3] |                                        | [000%] --(E) --(X)
+ <---> P4: Xo@q[3] |########################################| [100%] --(E) --(X)
+ <---> P4: [WARNING] Empty workload for CPU 4
+ <---> P4: [PARALLEL distribution for X Frequencies on 4 CPU] Loaded/Total (Percentual):0/1(0%)
+ <---> P4: [PARALLEL distribution for RL vectors(X) on 2 CPU] Loaded/Total (Percentual):3160/6241(51%)
+ <02s> P4: [06] Timing Overview
+ <02s> P4: [TIMING]                               io_ATMPROJ_pwscf :      0.0000s CPU
+ <02s> P4: [TIMING]                                     io_COL_CUT :      0.0000s CPU
+ <02s> P4: [TIMING]                                   io_KB_abinit :      0.0000s CPU
+ <02s> P4: [TIMING]     MATRIX transfer (X_G_finite_q_X_redux_2_1) :      0.0000s CPU ( 3 calls,   0.013 msec avg)
+ <02s> P4: [TIMING]                                          io_HF :      0.0000s CPU
+ <02s> P4: [TIMING]                        IO_and_Messaging_switch :      0.0001s CPU (16 calls,   0.004 msec avg)
+ <02s> P4: [TIMING]                                 io_Double_Grid :      0.0001s CPU ( 2 calls,   0.033 msec avg)
+ <02s> P4: [TIMING]                                   PP_uspp_init :      0.0001s CPU ( 4 calls,   0.023 msec avg)
+ <02s> P4: [TIMING]                                           io_X :      0.0001s CPU (10 calls,   0.015 msec avg)
+ <02s> P4: [TIMING]     MATRIX transfer (X_G_finite_q_X_redux_1_1) :      0.0002s CPU ( 3 calls,   0.080 msec avg)
+ <02s> P4: [TIMING]                                  X (procedure) :      0.0009s CPU ( 3 calls,   0.304 msec avg)
+ <02s> P4: [TIMING]                                    io_fragment :      0.0044s CPU ( 9 calls,   0.484 msec avg)
+ <02s> P4: [TIMING]                                       io_QINDX :      0.0051s CPU ( 2 calls,   2.538 msec avg)
+ <02s> P4: [TIMING]                                     io_DIPOLES :      0.0072s CPU (14 calls,   0.511 msec avg)
+ <02s> P4: [TIMING]                                    io_KB_pwscf :      0.0075s CPU ( 5 calls,   1.491 msec avg)
+ <02s> P4: [TIMING]                                        io_GROT :      0.0084s CPU ( 2 calls,   4.176 msec avg)
+ <02s> P4: [TIMING]                                    WF_load_FFT :      0.0108s CPU ( 4 calls,   2.706 msec avg)
+ <02s> P4: [TIMING]                                          io_WF :      0.0116s CPU (15 calls,   0.776 msec avg)
+ <02s> P4: [TIMING]                                      FFT_setup :      0.0183s CPU ( 3 calls,   6.098 msec avg)
+ <02s> P4: [TIMING]                                      X (REDUX) :      0.0198s CPU ( 3 calls,   6.585 msec avg)
+ <02s> P4: [TIMING]                              DIPOLE_transverse :      0.0314s CPU
+ <02s> P4: [TIMING]                                 Xo (procedure) :      0.0997s CPU ( 3 calls,  33.230 msec avg)
+ <02s> P4: [TIMING]                                     Xo (REDUX) :      0.6895s CPU ( 3 calls, 229.830 msec avg)
+ <02s> P4: [TIMING]                                        Dipoles :      0.7501s CPU
+ <02s> P4: [07] Game Over & Game summary
