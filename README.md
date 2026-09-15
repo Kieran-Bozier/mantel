@@ -38,8 +38,11 @@ If you have `${MKLROOT}` set, you should be able to compile the codes with:
 $ make
 $ make install
 ```
-You will still need to follow the conda instructions listed later to
-setup a suitable environment for the python scripts
+You will still need to follow the conda instructions listed later to setup a suitable environment for the python scripts
+
+
+Once setup is complete, you can start running the Tutorials in `/examples`.
+
 
 Provided Quantum ESPRESSO and Yambo are compiled, running the calculations is straightforward, and only requires a Quantum ESPRESSO scf input.
 ```
