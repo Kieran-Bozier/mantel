@@ -112,6 +112,11 @@ contains
             print *, "Error: in_min must be >= 1. Got: ", in_min
             error stop
         end if
+
+        if (trim(qtf_method) /= "fit" .and. trim(qtf_method) /= "electrons") then
+            print *, "Error: qtf_method must be 'fit' or 'electrons'. Got: ", trim(qtf_method)
+            error stop
+        end if
     end subroutine read_mantel_namelist
 
 

@@ -271,7 +271,7 @@ def write_nml(scf_file, bands_file, nscf_file, filename):
     prefix        = scf.prefix
     alat          = scf.alat
     cell          = scf.cell
-    volume        = np.linalg.det(cell)
+    volume        = np.abs(np.linalg.det(cell))
     nelec         = scf.nelec
     fermi         = scf.fermi_energy 
     qe_nbnd       = bands.nbnd

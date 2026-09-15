@@ -9,11 +9,12 @@
 FFTW_DIR     ?= $(shell brew --prefix fftw 2>/dev/null)
 OPENBLAS_DIR ?= $(shell brew --prefix openblas 2>/dev/null)
 
+
 ifeq ($(strip $(FFTW_DIR)),)
     $(error FFTW not found. Run `brew install fftw`, or set FFTW_DIR=/path/to/fftw)
 endif
 ifeq ($(strip $(OPENBLAS_DIR)),)
-    $(error OpenBLAS not found. Run `brew install openblas`, or set OPENBLAS_DIR=/path/to/openblas. Accelerate cannot be substituted - see the comment at the top of config/mac.mk)
+    $(error OpenBLAS not found. Run `brew install openblas`, or set OPENBLAS_DIR=/path/to/openblas. Accelerate cannot be substituted - see the comment at the top of config/darwin.mk)
 endif
 
 FFTW_INC = -I$(FFTW_DIR)/include
