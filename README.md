@@ -38,7 +38,11 @@ If you have `${MKLROOT}` set, you should be able to compile the codes with:
 $ make
 $ make install
 ```
-You will still need to follow the conda instructions listed later to setup a suitable environment for the python scripts
+You will still need to follow the conda instructions listed in `/docs/installation.md` to setup a suitable environment for the python scripts, but in summary
+```
+$ conda env create -f environment.yml
+```
+Please refer to `/docs/installation.md` for complete instructions.
 
 
 Once setup is complete, you can start running the Tutorials in `/examples`.

@@ -90,7 +90,7 @@ QE DFT (SCF + bands)
   (generate plots → *.png, *.pdf)
 ```
 
-The two shell scripts `mantel-prep.sh` and `mantel-run.sh` automate stages 1 and 2
+The two shell scripts `mantel_prep.sh` and `mantel_run.sh` automate stages 1 and 2
 respectively; see [workflow.md](workflow.md) for details.
 
 ---
@@ -147,20 +147,20 @@ export PSEUDO_DIR=/path/to/pseudopotentials
 export SCRATCH_DIR=/dev/shm
 
 # 3. Generate test data and run the full pipeline for all 4 test materials
-test/mantel-test.sh
+test/mantel_test.sh
 
 # Or just generate the input files without running:
-test/mantel-test.sh -f
+test/mantel_test.sh -f
 ```
 
 For a manual run on a single material:
 ```bash
 cd test/Al/
 # Stage 1: QE SCF + bands + Yambo RPA
-bin/mantel-prep.sh -c Al.mantel.in -n 8
+bin/mantel_prep.sh -c Al.mantel.in -n 8
 
 # Stage 2: wfc2bin → prepare_yambo → mantel.x → post-processing
-bin/mantel-run.sh -c Al.mantel.in
+bin/mantel_run.sh -c Al.mantel.in
 ```
 
 Results appear as `Al-fortran_W_ee_final.pdf` and related files in the `test/Al/` directory.
@@ -173,6 +173,6 @@ Results appear as `Al-fortran_W_ee_final.pdf` and related files in the `test/Al/
 |---|---|
 | [mantel.x.md](mantel.x.md) | Main executable: inputs, config, outputs, parallelism |
 | [wfc2bin.md](wfc2bin.md) | QE wavefunction converter |
-| [workflow.md](workflow.md) | Shell scripts `mantel-prep.sh` and `mantel-run.sh` |
+| [workflow.md](workflow.md) | Shell scripts `mantel_prep.sh` and `mantel_run.sh` |
 | [post-processing.md](post-processing.md) | Python utilities: prepare_yambo, bin_converter, W_ee, plotter |
 | [testing.md](testing.md) | Test suite: materials, usage, expected output |
