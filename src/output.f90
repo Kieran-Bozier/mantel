@@ -36,7 +36,7 @@ contains
         write(stdout, '(5x,"                    screened Coulomb interaction     ")')
         write(stdout, '(5x,"     =====================================================")')
         write(stdout, '(5x,"                       Written by K. Bozier            ")')
-        write(stdout, '(5x,"                             2026                   ")')
+        write(stdout, '(5x,"                           2025 - 2026                   ")')
         write(stdout, *)
         flush(stdout)
     end subroutine print_banner
@@ -113,65 +113,88 @@ contains
         integer, intent(in)     :: nx, ny, nz, numBands, numK, numG, numYamboG, numq, numthreads
         real(dp)                :: mem_per_thread, global_mem, total_mem
 
-        !> Global arrays mem
-        real(dp)                :: batched_c_nk_mem, epsm1_unpadded_mem, epsm1_padded_mem, &
-                                    Vc_screened_mem, W_mem, G_vec_cart_mem, k_cart_mem, &
-                                    yambo_q_mem, G_vec_crys_mem, yambo_Gs_mem, gmap_mem, ikp_arr_mem
+        !> Global arrays, in bytes
+        real(dp)                :: batched_c_nk_bytes, epsm1_unpadded_bytes, epsm1_padded_bytes, &
+                                    Vc_screened_bytes, W_bytes, G_vec_cart_bytes, k_cart_bytes, &
+                                    yambo_q_bytes
 
-        !> per thread arrays mem
-        integer                 :: double_nx, double_ny, double_nz
-        real(dp)                :: c_nk_real_store_mem, c_mp_real_store_mem, rho_real_mem, rho_G_double_mem, &
-                                    umklapp_phase_factor_mem, rho_batch_mem, res_batch_mem, W_k_mem
+        !> Per thread arrays, in bytes
+        real(dp)                :: c_nk_real_store_bytes, c_mp_real_store_bytes, rho_real_bytes, &
+                                    rho_G_double_bytes, umklapp_phase_factor_bytes, padded_input_bytes, &
+                                    rho_batch_bytes, res_batch_bytes, work_rho_G_bytes, W_k_bytes
 
-        character(len=24)       :: global_top_name, thread_top_name
-        real(dp)                :: global_top_val, thread_top_val
-                    
-        !> Estimate memory usage (in GB)
-        
+        !> Dimensions held as reals, so the products below cannot overflow a default integer
+        real(dp)                :: rnx, rny, rnz, rdx, rdy, rdz
+        real(dp)                :: rBands, rK, rG, rYamboG, rq
+
+        !> Bytes per element, and the byte -> MB conversion
+        real(dp), parameter     :: complex_bytes = 16.0_dp
+        real(dp), parameter     :: real_bytes    = 8.0_dp
+        real(dp), parameter     :: to_MB         = 1.0d6
+
+        rnx = real(nx, dp)
+        rny = real(ny, dp)
+        rnz = real(nz, dp)
+
+        !> Density grid is 2n + 1 per direction, matching double_fft_grid in mantel.f90
+        rdx = 2.0_dp*rnx + 1.0_dp
+        rdy = 2.0_dp*rny + 1.0_dp
+        rdz = 2.0_dp*rnz + 1.0_dp
+
+        rBands  = real(numBands, dp)
+        rK      = real(numK, dp)
+        rG      = real(numG, dp)
+        rYamboG = real(numYamboG, dp)
+        rq      = real(numq, dp)
+
+        !> Estimate memory usage (in bytes, converted to MB when printed)
+
         !> GLOBAL ARRAYS
         !> Complex arrays
-        batched_c_nk_mem = real(nx*ny*nz*numBands*numK, dp) * 16.0d0 / 1.0d9
-        epsm1_unpadded_mem = real((numYamboG**2)*numq, dp) * 16.0d0 / 1.0d9
-        epsm1_padded_mem = real((numG**2), dp) * 16.0d0 / 1.0d9 
-        Vc_screened_mem = real(numG, dp)**2 * 16.0d0 / 1.0d9
-        W_mem = real(numG, dp)**2 * real(numq, dp) * 16.0d0 / 1.0d9
+        batched_c_nk_bytes   = complex_bytes * rnx*rny*rnz * rBands * rK
+        epsm1_unpadded_bytes = complex_bytes * rYamboG*rYamboG * rq
+        epsm1_padded_bytes   = complex_bytes * rG*rG
+        Vc_screened_bytes    = complex_bytes * rG*rG
+        W_bytes              = complex_bytes * rBands*rBands * rK
         !> Real arrays
-        G_vec_cart_mem = real(numG*3, dp) * 8.0d0 / 1.0d9
-        k_cart_mem = real(numK*3, dp) * 8.0d0 / 1.0d9
-        yambo_q_mem = real(numq*3, dp) * 8.0d0 / 1.0d9
+        G_vec_cart_bytes = real_bytes * 3.0_dp * rG
+        k_cart_bytes     = real_bytes * 3.0_dp * rK
+        yambo_q_bytes    = real_bytes * 3.0_dp * rq
 
         !> For now we'll neglect those integer arrays since small
 
 
-        !> PER THREAD ARRAYS 
+        !> PER THREAD ARRAYS
         !> Complex arrays
-        double_nx = 2*nx
-        double_ny = 2*ny
-        double_nz = 2*nz
-        c_nk_real_store_mem = real(double_nx*double_ny*double_nz*numBands, dp) * 16.0d0 / 1.0d9
-        c_mp_real_store_mem = real(double_nx*double_ny*double_nz*numBands, dp) * 16.0d0 / 1.0d9
-        rho_real_mem = real(double_nx*double_ny*double_nz, dp) * 16.0d0 / 1.0d9
-        rho_G_double_mem = real((numG**2), dp) * 16.0d0 / 1.0d9
-        umklapp_phase_factor_mem = real(numq*numG, dp) * 16.0d0 / 1.0d9
-        rho_batch_mem = real(numG * numBands**2 , dp) * 16.0d0 / 1.0d9
-        res_batch_mem = real(numG * numBands**2 , dp) * 16.0d0 / 1.0d9
-        W_k_mem = real(numBands**2, dp) * 16.0d0 / 1.0d9
+        c_nk_real_store_bytes      = complex_bytes * rdx*rdy*rdz * rBands
+        c_mp_real_store_bytes      = complex_bytes * rdx*rdy*rdz * rBands
+        rho_real_bytes             = complex_bytes * rdx*rdy*rdz
+        rho_G_double_bytes         = complex_bytes * rdx*rdy*rdz
+        umklapp_phase_factor_bytes = complex_bytes * rdx*rdy*rdz
+        !> padded_input is allocated per call inside get_real_on_double_grid
+        padded_input_bytes         = complex_bytes * rdx*rdy*rdz
+        rho_batch_bytes            = complex_bytes * rG * rBands*rBands
+        res_batch_bytes            = complex_bytes * rG * rBands*rBands
+        work_rho_G_bytes           = complex_bytes * rG
+        W_k_bytes                  = complex_bytes * rBands*rBands
 
         !> Total memory per thread
-        mem_per_thread = c_nk_real_store_mem + c_mp_real_store_mem + rho_real_mem + rho_G_double_mem + &
-                         umklapp_phase_factor_mem + rho_batch_mem + res_batch_mem + W_k_mem
+        mem_per_thread = ( c_nk_real_store_bytes + c_mp_real_store_bytes + rho_real_bytes + &
+                           rho_G_double_bytes + umklapp_phase_factor_bytes + padded_input_bytes + &
+                           rho_batch_bytes + res_batch_bytes + work_rho_G_bytes + W_k_bytes ) / to_MB
 
         !> Total global memory
-        global_mem = batched_c_nk_mem + epsm1_unpadded_mem + epsm1_padded_mem + Vc_screened_mem + W_mem + &
-                     G_vec_cart_mem + k_cart_mem + yambo_q_mem
-        
+        global_mem = ( batched_c_nk_bytes + epsm1_unpadded_bytes + epsm1_padded_bytes + &
+                       Vc_screened_bytes + W_bytes + G_vec_cart_bytes + k_cart_bytes + &
+                       yambo_q_bytes ) / to_MB
+
         !> Total memory (global + per thread * numthreads)
         total_mem = global_mem + mem_per_thread * real(numthreads, dp)
 
         write(stdout, fmt_divider)
-        write(stdout, '(5x,A30,2x,F10.4,A)') 'Global memory:',     global_mem,     ' GB'
-        write(stdout, '(5x,A30,2x,F10.4,A)') 'Memory per thread:', mem_per_thread, ' GB'
-        write(stdout, '(5x,A30,2x,F10.4,A)') 'Total memory:',      total_mem,      ' GB'
+        write(stdout, '(5x,A30,2x,F12.2,A)') 'Global memory:',     global_mem,     ' MB'
+        write(stdout, '(5x,A30,2x,F12.2,A)') 'Memory per thread:', mem_per_thread, ' MB'
+        write(stdout, '(5x,A30,2x,F12.2,A)') 'Total memory:',      total_mem,      ' MB'
         write(stdout, fmt_divider)
         flush(stdout)
 
