@@ -1,178 +1,158 @@
-# Mantel — Project Overview
+# Overview
 
-Mantel computes the **screened Coulomb interaction W(n,m,k,q)** in the Bloch basis. Given
-Kohn-Sham wavefunctions from a Quantum ESPRESSO (QE) DFT calculation and a dielectric
-matrix ε⁻¹(G,G',q) from Yambo's random-phase approximation (RPA), mantel evaluates the
-matrix element ⟨nk|W(q)|mk'⟩ for all bands n, m and k-points k, k'=k+q. These matrix
-elements are used downstream to compute physically observable quantities such as the
-isoenergy-averaged electron–electron interaction W(E,E'), which characterises how strongly
-electrons at energy E scatter off electrons at energy E'. This quantity is central to the 
-evaluation of the Coulomb pseudopotential µ*.
+`mantel` computes the statically screened Coulomb interaction $W$ in the Bloch basis, from
+DFT wavefunctions produced by [Quantum ESPRESSO](https://www.quantum-espresso.org/) and an
+inverse dielectric matrix produced by [Yambo](https://www.yambo-code.eu/).
 
----
+This pipeline produces $W(\varepsilon,\varepsilon')$ - the
+interaction averaged onto pairs of isoenergy surfaces - written as `W_ee.dat` in the format
+[IsoME](https://github.com/cheil/IsoME.jl) reads when solving the isotropic Eliashberg
+equations. The Coulomb parameter $\mu$ falls out of the same data, which can be used to calculate the Coulomb pseudopotential.
 
-## Prerequisites
-
-### System tools
-- **gfortran** ≥ 9 (or any Fortran 2008 compiler)
-- **FFTW3** (with OpenMP support; Homebrew path: `/opt/homebrew/opt/fftw`)
-- **LAPACK** and **BLAS**
-- **OpenMP** (bundled with gfortran)
-- **GNU make**
-
-### External codes
-- **Quantum ESPRESSO** (QE) — DFT SCF + bands calculations
-- **Yambo** — RPA dielectric matrix calculation
-- **yambopy** — Python interface to Yambo databases (required by `prepare_yambo.py`)
-
-### Python packages
-```
-numpy
-matplotlib
-tqdm
-yambopy
-```
-
-A conda environment works well:
-```bash
-conda create -n mantel python=3.10 numpy matplotlib tqdm
-pip install yambopy
-```
+The full expressions are in [mantel.x.md](mantel.x.md) and
+[isoenergy.x.md](isoenergy.x.md); the README states them in one place.
 
 ---
 
-## Building
+## Where to start
 
-All compilation is done from the repository root:
+1. [installation.md](installation.md) — build the Fortran, create the conda environment.
+2. [tutorial.md](tutorial.md) — the worked examples in `examples/`. Tutorial01 is a small
+   Nb run that checks the executables behave; Tutorial02 is a standard Al calculation.
+3. [workflow.md](workflow.md) — what the two driver scripts actually do, step by step.
+4. [inputs.md](inputs.md) — every variable, once you are setting up your own material.
+
+To check a build without running QE or Yambo:
 
 ```bash
-make                  # optimised build: -O3 -fopenmp -march=native (default)
-make BUILD=profile    # debug/profiling build: -O0 -g -pg
-make install          # install mantel.x and wfc2bin to bin/
-make clean            # remove build artefacts
+$ make && pytest test/reference
 ```
 
-This produces two executables:
-- `mantel.x` — the main screened Coulomb calculator
-- `wfc2bin` — the QE wavefunction converter
-
-After `make install`, both executables are placed in `bin/`.
+See [testing.md](testing.md).
 
 ---
 
-## Full Pipeline
 
-```
-QE DFT (SCF + bands)
-        │
-        ▼
-    wfc2bin
-  (convert wfc.dat → WFC/ik-*.bin, G_vectors.bin, cartesian_k.bin)
-        │
-        ▼
-  prepare_yambo.py
-  (extract Yambo ε⁻¹ → epsm1_unpadded.bin, yambo_qs.bin, yambo_Gs.bin)
-        │
-        ▼
-    mantel.x
-  (compute W(n,m,k,q) → W_iq*.bin, ik.bin, ikp_iq*.bin)
-        │
-        ▼
-  bin_converter.py
-  (convert .bin → .npy)
-        │
-        ▼
-     W_ee.py
-  (compute W(E,E') → W_ee_raw.npy, dos_raw.npy, W_ee.dat)
-        │
-        ▼
-   plotter.py
-  (generate plots → *.png, *.pdf)
-```
 
-The two shell scripts `mantel_prep.sh` and `mantel_run.sh` automate stages 1 and 2
-respectively; see [workflow.md](workflow.md) for details.
+## How the pieces fit together
+
+Three codes each supply one ingredient, and `mantel.x` combines them:
+
+| Ingredient | Comes from | Reaches mantel as |
+|---|---|---|
+| Bloch wavefunctions $u_{n\mathbf{k}}$ | QE bands run | `<wfc_dir>/ik-*.bin` via `wfc2bin.x` |
+| Band energies, q-weights, cell, $E_F$ | QE XML files | `band_energies.bin`, `q_weights.bin`, `mantel.nml` via `mantel_xml.py` |
+| $\epsilon^{-1}_{\mathbf{G},\mathbf{G}'}(\mathbf{q},0)$ | Yambo static RPA | `epsm1_unpadded.bin` via `prepare_yambo.py` |
+
+`mantel.x` forms density products by FFT, contracts them with the screened Coulomb kernel,
+and writes one $W$ matrix per q-point. `isoenergy.x` and `mu.x` then reduce those matrices
+to the quantities you actually use.
 
 ---
 
-## Unified Input File
+## The pipeline
 
-All tools share a single configuration file `<seed>.mantel.in` containing four namelist
-blocks and a `CELL_PARAMETERS` section:
+Everything starts from a single QE SCF input and a single `mantel.in`. Two scripts run the
+rest:
 
-```fortran
-&qe
-   qe_kgrid = "8 8 8"   ! k-grid used in the QE calculation
-   nbnd     = 30         ! total number of bands
-   wfc_dir  = "WFC"      ! directory containing wfc*.dat files
-/
-
-&yambo
-   yambo_kgrid = "6 6 6" ! k-grid used in the Yambo calculation
-   chi_bands   = 30       ! number of bands for the polarisability
-   NGsBlkXs    = 25       ! dielectric matrix size cutoff (Ry)
-   yambo_dir   = "YAMBO"  ! Yambo working directory
-/
-
-&wfc2bin
-   Gmax = 12   ! real-space grid half-size: grid = (2*Gmax+1)^3
-/
-
-&mantel
-   num_electrons = 3   ! number of valence electrons
-   in_min        = 1   ! first band index to compute W for (1-based)
-   in_max        = 10  ! last  band index to compute W for (1-based)
-/
-
-CELL_PARAMETERS bohr
-  -1.988860722  -0.000000000   1.988860722
-   0.000000000   1.988860722   1.988860722
-  -1.988860722   1.988860722  -0.000000000
 ```
-
-- `&qe` and `&wfc2bin` are used by `wfc2bin`
-- `&qe` and `&mantel` (plus `CELL_PARAMETERS`) are read by `mantel.x`
-- All four blocks are used by the workflow scripts
-
----
-
-## Quick-Start: Aluminium Test Case
+scf.in  +  mantel.in
+   │
+   ├─ Stage 1 — mantel_prep.sh  (needs QE and Yambo)
+   │    qe_driver.sh       pw.x scf + bands    → xml/{scf,bands}.xml, <wfc_dir>/wfc*.dat
+   │    yambo_driver.sh    pw.x scf + nscf,    → xml/nscf.xml,
+   │                       p2y, yambo RPA        <yambo_dir>/{SAVE,RPA}
+   │
+   └─ Stage 2 — mantel_run.sh  (needs the mantel binaries and yambopy)
+        mantel_xml.py      → mantel.nml, band_energies.bin, q_weights.bin
+        wfc2bin.x          → <wfc_dir>/ik-*.bin, G_vectors.bin, cartesian_k.bin
+        prepare_yambo.py   → epsm1_unpadded.bin, yambo_qs.bin, yambo_Gs.bin
+        mantel.x           → W_iq*.bin, ikp_iq*.bin, ik.bin
+        isoenergy.x        → W_ee.dat, dos.dat
+        mu.x               → mu.dat
+```
 
 ```bash
-# 1. Build
-make && make install
-
-# 2. Set up environment variables for the test suite
-export PSEUDO_DIR=/path/to/pseudopotentials
-export SCRATCH_DIR=/dev/shm
-
-# 3. Generate test data and run the full pipeline for all 4 test materials
-test/mantel_test.sh
-
-# Or just generate the input files without running:
-test/mantel_test.sh -f
+$ mantel_gen.py -v mantel.in  # template, with every variable commented
+$ mantel_prep.sh -c mantel.in -n 16
+$ mantel_run.sh  -c mantel.in
 ```
 
-For a manual run on a single material:
-```bash
-cd test/Al/
-# Stage 1: QE SCF + bands + Yambo RPA
-bin/mantel_prep.sh -c Al.mantel.in -n 8
+Both stages log to `mantel_prep.log` and `mantel_run.log`, stop at the first failure, and
+name the file to read. Stage 2's steps are ordinary programs that the script only
+sequences, so any one of them can be rerun by hand - see
+[workflow.md](workflow.md#running-the-steps-by-hand). That matters because `mantel.x` is
+the expensive step, and changing a smearing or an energy grid only needs `isoenergy.x` or
+`mu.x` run again.
 
-# Stage 2: wfc2bin → prepare_yambo → mantel.x → post-processing
-bin/mantel_run.sh -c Al.mantel.in
-```
-
-Results appear as `Al-fortran_W_ee_final.pdf` and related files in the `test/Al/` directory.
+> `make install` puts the four executables in `bin/`, alongside the scripts. **Put `bin/`
+> on your `PATH`** - the scripts find each other and the binaries by name.
 
 ---
 
-## Per-Tool Documentation
+## The programs
 
-| Document | Contents |
+| Program | Does | Docs |
+|---|---|---|
+| `wfc2bin.x` | Maps QE `wfc*.dat` onto a fixed G cube of side `2*Gmax+1` | [wfc2bin.md](wfc2bin.md) |
+| `mantel.x` | Computes $W$ for every band pair and k-point, one file per q-point | [mantel.x.md](mantel.x.md) |
+| `isoenergy.x` | Averages $W$ onto isoenergy surfaces, giving $W(\varepsilon,\varepsilon')$ | [isoenergy.x.md](isoenergy.x.md) |
+| `mu.x` | Fermi-surface average, giving $\mu = N_F \langle\langle W \rangle\rangle_{FS}$ against smearing | [mu.x.md](mu.x.md) |
+
+All four read `mantel.in` on **standard input** and take `-h`. All four are OpenMP-only;
+set `OMP_NUM_THREADS`.
+
+Helper scripts live in `bin/` too: `mantel_gen.py` writes an input template, `mantel_xml.py`
+turns the QE XML into `mantel.nml`, `qe_input.py` derives the bands and Yambo inputs from
+your SCF input, `prepare_yambo.py` exports the Yambo databases, and `plot.py` plots
+`W_ee.dat` and `dos.dat`. `tools/` holds `.bin` ⇄ `.npy` converters for poking at
+intermediate files.
+
+---
+
+## Input files
+
+Two files configure a run, and nothing appears in both:
+
+| File | Written by | Holds |
+|---|---|---|
+| `<seed>.mantel.in` | you, from `mantel_gen.py` | the choices: grids, band windows, cutoffs, smearings |
+| `mantel.nml` | `mantel_xml.py`, from the QE XML | the facts: lattice vectors, `nelec`, $E_F$, k- and q-point counts |
+
+`mantel.in` is a set of Fortran namelist blocks — `&qe`, `&yambo`, `&wfc2bin`, `&mantel`,
+`&isoenergy`, `&mu` - and each program reads only the blocks it owns, so one file serves
+the whole pipeline. Every variable is documented in [inputs.md](inputs.md).
+
+Never edit `mantel.nml` by hand; regenerate it with `mantel_xml.py`.
+
+---
+
+## What you get out
+
+| File | Contents |
 |---|---|
-| [mantel.x.md](mantel.x.md) | Main executable: inputs, config, outputs, parallelism |
-| [wfc2bin.md](wfc2bin.md) | QE wavefunction converter |
-| [workflow.md](workflow.md) | Shell scripts `mantel_prep.sh` and `mantel_run.sh` |
-| [post-processing.md](post-processing.md) | Python utilities: prepare_yambo, bin_converter, W_ee, plotter |
-| [testing.md](testing.md) | Test suite: materials, usage, expected output |
+| `W_iq<N>.bin` | $W$ for q-point `N`, shape (`numBands`, `numBands`, `nks`) |
+| `ik.bin`, `ikp_iq<N>.bin` | k-point list, and the k′ = k+q index map per q-point |
+| `W_ee.dat` | $W(\varepsilon,\varepsilon')$ on the `&isoenergy` grid — the file IsoME reads |
+| `dos.dat` | Gaussian DOS on the same grid, for checking the smearing |
+| `mu.dat` | $N_F$, $W(0,0)$ and $\mu$ against smearing width |
+
+Layouts, headers and the `.bin` header format are in
+[file-formats.md](file-formats.md).
+
+---
+
+## Document map
+
+| Document | Covers |
+|---|---|
+| [installation.md](installation.md) | Dependencies, build configs, Python environment |
+| [tutorial.md](tutorial.md) | The worked examples in `examples/` |
+| [workflow.md](workflow.md) | `mantel_prep.sh`, `mantel_run.sh` and the helper scripts |
+| [inputs.md](inputs.md) | Every `mantel.in` and `mantel.nml` variable |
+| [wfc2bin.md](wfc2bin.md) | `wfc2bin.x`, and choosing `Gmax` |
+| [mantel.x.md](mantel.x.md) | `mantel.x`, the $\mathbf{q}\to0$ treatment, parallelism |
+| [isoenergy.x.md](isoenergy.x.md) | `isoenergy.x` and the isoenergy average |
+| [mu.x.md](mu.x.md) | `mu.x`, and rescaling with an external $N_F$ |
+| [file-formats.md](file-formats.md) | `.bin`, `W_ee.dat`, `dos.dat`, `mu.dat` |
+| [testing.md](testing.md) | The test suite |
