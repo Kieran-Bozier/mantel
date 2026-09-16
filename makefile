@@ -128,11 +128,17 @@ configs:
 clean:
 	rm -rf $(BUILD_DIR)
 
-# Module dependency order
-$(BUILD_DIR)/mantel.o:   $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o))
-$(BUILD_DIR)/wfc2bin.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
-                        $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
-$(BUILD_DIR)/isoenergy.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
-                        $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
-$(BUILD_DIR)/mu.o :	$(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
-			$(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
+# Modules that use precision only
+$(BUILD_DIR)/array_io.o $(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o \
+$(BUILD_DIR)/precompute.o $(BUILD_DIR)/epsm1.o $(BUILD_DIR)/k_mapping.o \
+$(BUILD_DIR)/g_mapping.o $(BUILD_DIR)/W_nkmp.o $(BUILD_DIR)/output.o: $(BUILD_DIR)/precision.o
+
+
+# Modules that use precision and array_io
+$(BUILD_DIR)/write_data.o $(BUILD_DIR)/wfc.o: $(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o
+
+# Programs
+$(BUILD_DIR)/mantel.o: $(addprefix $(BUILD_DIR)/, $(MODULES:.f90=.o))
+$(BUILD_DIR)/wfc2bin.o $(BUILD_DIR)/isoenergy.o $(BUILD_DIR)/mu.o: \
+$(BUILD_DIR)/precision.o $(BUILD_DIR)/array_io.o \
+$(BUILD_DIR)/read_mantel_in.o $(BUILD_DIR)/read_mantel_nml.o
