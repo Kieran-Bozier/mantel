@@ -1,8 +1,6 @@
 """
 Shared setup for the Python unit tests.
-
-pytest imports this file automatically before collecting any test_*.py in
-this directory, so anything defined here is available without importing it.
+pytest imports this file automatically 
 """
 import sys
 from pathlib import Path
