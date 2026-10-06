@@ -13,7 +13,7 @@ bin/wfc2bin.x
 bin/isoenergy.x
 bin/mu.x
 bin/*.dat
-.DS_STORE
+.DS_Store
 src/check_inputs.f90
 bin/*.bin
 bin/*.pdf
