@@ -12,3 +12,7 @@ bin/mantel.x
 bin/wfc2bin.x
 bin/isoenergy.x
 bin/mu.x
+bin/*.dat
+.DS_STORE
+bin/check_inputs.f90
+
