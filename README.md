@@ -116,16 +116,15 @@ More information about how to run each of the codes can be found in the `/docs/`
 
 
 
+## Running the tests and examples
 
-
-## Running the test suite
-
-```bash
-test/mantel_test.sh         # generate test data (Al, Nb, Ta, H₃S) and run full pipeline
-test/mantel_test.sh -f      # generate test data only, no execution
+The unit and reference tests are in the `/test/` directory, and can be run with
+```
+pytest test/reference test/unit/python
 ```
 
-> **Note:** The test script requires Quantum ESPRESSO and pseudopotentials. Edit the `PSEUDO_DIR` and `SCRATCH_DIR` variables at the top of `test/mantel_test.sh` before running. See the comments in that file for details.
+Tests of the full pipeline are included as part of the `/examples/`, where the relevant reference data is also found.
+An overview of the Tutorials is given in `/docs/tutorial.md`, and detailed instructions can be found in each `/examples/Tutorial01_Nb`.
 
 ---
 
