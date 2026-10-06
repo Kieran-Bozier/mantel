@@ -33,12 +33,14 @@ The resulting `W_ee.dat` file can be passed to [`IsoME`](https://github.com/chei
 
 
 ### Quickstart
-If you have `${MKLROOT}` set, you should be able to compile the codes with:
+With gfortran, FFTW3 and a BLAS/LAPACK library installed, you should be able to compile with:
 ```
 $ make
 $ make install
 ```
-You will still need to follow the conda instructions listed in `/docs/installation.md` to setup a suitable environment for the python scripts, but in summary
+`make` picks a platform from config automatically. Override the automatic choice with `make CONFIG=<name>` (run `make clean` first if you've already built with another config).
+
+You will also need to follow the conda instructions listed in `/docs/installation.md` to setup a suitable environment for the python scripts, but in summary
 ```
 $ conda env create -f environment.yml
 ```

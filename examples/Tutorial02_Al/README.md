@@ -34,7 +34,7 @@ $ mantel.x < mantel.in > mantel.out
 $ isoenergy.x < mantel.in > isoenergy.out
 $ mu.x < mantel.in > mu.out
 ```
-**Estimated Timing:** around 5 minutes when run on 4 OMP threads
+**Estimated Timing:** around 10 minutes when run on 4 OMP threads
 
 
 ## Full run
