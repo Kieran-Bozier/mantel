@@ -5,7 +5,7 @@ writes the k-point maps it used alongside it.
 It starts from the wfc2bin snapshot rather than from a fresh wfc2bin run, so a
 failure here is a failure in mantel.x and nothing else.
 """
-from conftest import DATA, assert_bins_match, run
+from reference_tools import DATA, assert_bins_match, run
 
 
 def test_mantel_reproduces_reference(mantel_x, workdir):

@@ -2,7 +2,7 @@
 isoenergy.x averages W over the isoenergy surfaces to give W(e,e').
 """
 import numpy as np
-from conftest import DATA, run
+from reference_tools import DATA, run
 
 
 def test_isoenergy_reproduces_reference(isoenergy_x, workdir):
