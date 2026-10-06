@@ -25,7 +25,7 @@ The full expressions are in [mantel.x.md](mantel.x.md) and
 To check a build without running QE or Yambo:
 
 ```bash
-$ make && pytest test/reference
+$ make && pytest test/reference test/unit/python
 ```
 
 See [testing.md](testing.md).

@@ -117,7 +117,7 @@ Several of the Python scripts require `numpy` and the `yambopy` package. One app
 
    This will:
    - Create a conda environment named `mantel`
-   - Install `numpy`, `matplotlib`, and `tqdm` from conda-forge (preferred over pip for these packages)
+   - Install `numpy`, `matplotlib` and `scienceplots` from conda-forge (preferred over pip for these packages)
    - Install `yambopy` via pip (not available on conda-forge)
 
 3. Activate the environment
@@ -130,7 +130,7 @@ Several of the Python scripts require `numpy` and the `yambopy` package. One app
 4. Verify
    Run
    ```
-   $ python -c "import yambopy, numpy, matplotlib, tqdm, pytest; print('Environment OK')"
+   $ python -c "import yambopy, numpy, matplotlib, pytest; print('Environment OK')"
    ```
 
 
