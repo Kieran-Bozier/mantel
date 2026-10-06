@@ -74,7 +74,8 @@ This should return a `W_ee.dat` file.
 
 The pipeline consists of two high-level scripts 
 #### Step 1. `mantel_prep.sh`
-This script prepares all the inputs required for `mantel`, by running a `Quantum ESPRESSO` bands calculation to find the wavefunction files, and also running a `Yambo` calculation (at static RPA level) to obtain the inverse dielectric.
+This script prepares all the inputs required for `mantel`, by running a `Quantum ESPRESSO` bands calculation to find the wavefunction files, and also running a `Yambo` calculation (at static RPA level) to obtain the inverse dielectric. Be aware 
+that this step can take considerable compute depending on the system (it involves QE bands calculations on dense grids).
 
 #### Step 2. `mantel_run.sh`
 This script performs the calculation of W. The `wfc2bin.x` converts the `wfc.dat` format to the `.bin`, while `prepare_yambo.py` writes the inverse dielectric in a `.bin`. The `mantel.x` code combines these to yield `W_iq.bin` files, with the static screened Coulomb interaction in the Bloch basis. Lastly, `isoenergy.x` performs the isoenergy averaging to return `W_ee.dat` and `mu.x` calculates $\mu = N_F \times \langle \langle W \rangle \rangle _{FS}$.

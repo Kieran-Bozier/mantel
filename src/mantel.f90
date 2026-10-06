@@ -106,7 +106,7 @@ program mantel
         call get_command_argument(1, arg)
         if (trim(arg) == '-h' .or. trim(arg) == '--help') then
             call print_help()
-            stop 0
+            stop 
         end if
     end if
 
