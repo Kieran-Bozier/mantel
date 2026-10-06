@@ -100,3 +100,16 @@ mantel_prep.sh -n 4 -c mantel.in &
 ```
 after which you should have the same files as the `mantel_only` directory, and can follow the instructions above.
 
+
+
+
+## Pseudopotentials
+
+`full_run/pseudos/Nb.upf` is taken from the
+[PseudoDojo](http://www.pseudo-dojo.org) NC SR (ONCVPSP v0.5) PBE standard table.
+If you use it in published work, please cite:
+
+- M. J. van Setten et al., *Comput. Phys. Commun.* **226**, 39 (2018),
+  [doi:10.1016/j.cpc.2018.01.012](https://doi.org/10.1016/j.cpc.2018.01.012)
+- D. R. Hamann, *Phys. Rev. B* **88**, 085117 (2013),
+  [doi:10.1103/PhysRevB.88.085117](https://doi.org/10.1103/PhysRevB.88.085117)
