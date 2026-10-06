@@ -15,4 +15,6 @@ bin/mu.x
 bin/*.dat
 .DS_STORE
 bin/check_inputs.f90
+bin/*.bin
+bin/*.pdf
 

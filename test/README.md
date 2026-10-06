@@ -6,7 +6,7 @@ The tests are organised into three levels, depending on what they require to be 
 |-------------------|----------------------------|-------------------------------|
 |       unit        |       gfortran, python     |  Checks individual functions  |
 |      reference    |       + built binaries     |  Checks the physics           |
-|       full        |       + QE, Yambo, pseudos |  Checks the drivers. Please see /examples           |
+|       full        |       + QE, Yambo, pseudos |  Checks the drivers. Please see `/examples`, which details how to perform a full run and gives reference data to compare to      |
 
 
 
