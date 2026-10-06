@@ -6,10 +6,10 @@ authors:
   - family-names: Bozier
     given-names: Kieran
     affiliation: "University of Cambridge"
-version: "1.0.0"
-date-released: "2026-01-01"
+version: "1.1.0"
+date-released: "2026-10-07"
 license: MIT
-repository-code: "https://github.com/kieranbozier/mantel"
+repository-code: "https://github.com/Kieran-Bozier/mantel"
 abstract: >
   mantel computes the screened Coulomb interaction matrix elements W(n,m,k)
   in the Bloch basis using DFT wavefunctions and a dielectric matrix from

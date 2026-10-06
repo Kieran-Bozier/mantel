@@ -135,11 +135,11 @@ def verbose_input():
     ! True density of states at the Fermi energy (N_F).
     ! Because Gaussian smearing often gets N_F incorrect,
     ! you can pass in e.g. a linear tetrahedral DOS value.
-    ! mu.x will then returns a DOS rescaled value as final column
-    ! Leave as -1.0 is don't want to apply the correction 
+    ! mu.x will then return a DOS rescaled value as final column
+    ! Leave as -1.0 if you don't want to apply the correction 
     !
     ! Units: states/eV/spin
-    ! Be aware default QE .dos.dat is typically states/eV, so need to half
+    ! Be aware default QE .dos.dat is typically states/eV, so need to halve
     nef             = -1.0
 /
 

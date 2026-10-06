@@ -1,6 +1,6 @@
 # Mantel
 
- [![CI](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml/badge.svg?branch=developer)](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml)
+ [![CI](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Kieran-Bozier/mantel/actions/workflows/ci.yml)
 
 ### Overview
 
@@ -61,10 +61,23 @@ Manually modify to set parameters as desired. Then run
 the full pipeline with
 ```
 $ mantel_prep.sh -c mantel.in
-   ... [ output here ]  ...
+[09:00:00] Logging to mantel_prep.log
+========================================
+   mantel_prep  2026-09-07 09:00:00
+========================================
+   [09:00:00] [1/2] QE (SCF + bands)
+   Configuration:
+...
+
 
 $ mantel_run.sh -c mantel.in
-   ... [ output here ] ...
+========================================
+[10:03:57] Logging to mantel_run.log
+========================================
+  mantel_run  2026-09-08 10:03:57
+  config=mantel.in
+...
+
 ```
 This should return a `W_ee.dat` file.
 
@@ -86,8 +99,8 @@ A summary of the codes is shown below. All codes come with a `-h` helper.
 |     Code      |     Description                  |
 |---------------|----------------------------------|
 | `mantel_gen.py` | Generates `mantel.in` template. Use `-v` flag to include comments explaining each variable                 |
-| `mantel_xml.py` | Reads the `xml` file from each Quantum ESPRESSO run, and write the `mantel.nml` file, which records information about the runs |
-| `wfc2bin.x`    | Converts the converts the `wfc#.dat` to the `ik-#.bin` format |
+| `mantel_xml.py` | Reads the `xml` file from each Quantum ESPRESSO run, and writes the `mantel.nml` file, which records information about the runs |
+| `wfc2bin.x`    | Converts the `wfc#.dat` to the `ik-#.bin` format |
 | `mantel.x`   | Calculates $W_{n,\mathbf{k}, m, \mathbf{k+q}}$ and stores in `W_iq.bin` for each $q$ |
 | `isoenergy.x`  |  Performs isoenergy average to return $W(\varepsilon, \varepsilon')$ in `W_ee.dat` |
 | `mu.x`         |  Calculates $\mu = N_F \times \langle \langle W \rangle \rangle_{FS}$ for different Gaussian smearings|
@@ -123,7 +136,7 @@ If you use `mantel` in your research, please cite:
 ```
 Kieran Bozier, University of Cambridge (2026).
 mantel: Bloch-basis evaluation of the screened Coulomb interaction.
-https://github.com/kieranbozier/mantel
+https://github.com/Kieran-Bozier/mantel
 ```
 
 A `CITATION.cff` file is included for machine-readable citation (used by GitHub's "Cite this repository" button).
