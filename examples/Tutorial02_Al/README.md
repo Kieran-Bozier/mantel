@@ -17,7 +17,7 @@ using the input files and reference data given in the `mantel_only` directory.
 
 You must ensure you have the correct `conda` environment loaded. Unfortunately, these Quantum Espresso wavefunctions are too large to put directly on GitHub, but you can download them from the releases using the `download_data.sh` script.
 
-Once you have extracted the `mantel_only_files.tar.gz`, the simplest way to run 
+Once the `mantel_only_files.tar.gz` is extracted, the simplest way to run 
 (assuming `/mantel/bin` is on your `PATH`) is:
 ```
 $ conda activate mantel

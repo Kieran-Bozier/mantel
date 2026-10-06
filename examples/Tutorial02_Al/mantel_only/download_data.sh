@@ -1,7 +1,7 @@
 #!/bin/bash
 # download_data.sh
 
-DATA_URL="https://github.com/Kieran-Bozier/Mantel/releases/download/Tutorial_02_data/mantel_only_files.tar.gz"
+DATA_URL="https://github.com/Kieran-Bozier/mantel/releases/download/Tutorial_02_data/mantel_only_files.tar.gz"
 TARBALL="mantel_only_files.tar.gz"
 
 if [ -d "WFC" ] && [ -d "YAMBO" ]; then
@@ -10,7 +10,7 @@ if [ -d "WFC" ] && [ -d "YAMBO" ]; then
 fi
 
 echo "Downloading tutorial data..."
-wget -q --show-progress "$DATA_URL" -O "$TARBALL" || { echo "Download failed"; exit 1; }
+curl -fL -# -o "$TARBALL" "$DATA_URL" || { echo "Download failed"; exit 1; }
 
 echo "Extracting..."
 tar xzf "$TARBALL"
