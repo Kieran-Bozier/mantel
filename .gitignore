@@ -14,7 +14,7 @@ bin/isoenergy.x
 bin/mu.x
 bin/*.dat
 .DS_STORE
-bin/check_inputs.f90
+src/check_inputs.f90
 bin/*.bin
 bin/*.pdf
 
