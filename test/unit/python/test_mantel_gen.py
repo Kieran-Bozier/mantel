@@ -3,7 +3,8 @@ import sys
 import pytest
 from mantel_gen import default_input, verbose_input, main
 
-GROUPS = ["isoenergy", "mantel", "qe", "wfc2bin", "yambo"]
+#Alphabetically sorted
+GROUPS = ["isoenergy", "mantel", "mu", "qe", "wfc2bin", "yambo"]
 
 
 def parse_template(text):
@@ -28,8 +29,8 @@ def test_every_group_is_present_and_closed(contents):
     lines = [line.strip() for line in contents.splitlines()]
 
     assert sorted(parse_template(contents)) == GROUPS
-    assert len([l for l in lines if l.startswith("&")]) == 5
-    assert len([l for l in lines if l == "/"]) == 5
+    assert len([l for l in lines if l.startswith("&")]) == len(GROUPS)
+    assert len([l for l in lines if l == "/"]) == len(GROUPS)
 
 
 def test_header_is_a_comment():
