@@ -16,7 +16,7 @@ tar -xvf Nb_mantel_only_files.tar.gz
 ```
 
 Every `Mantel` run is controlled by the `mantel.in` file. This file is broken up into
-separate namelists, like in Quantum ESPRESSO. Be aware that some of the exectuables read
+separate namelists, like in Quantum ESPRESSO. Be aware that some of the executables read
 from more than one namelist. 
 
 Use the `mantel.in` file present in this directory, but be aware for future runs you can 
