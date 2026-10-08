@@ -17,4 +17,4 @@ bin/*.dat
 src/check_inputs.f90
 bin/*.bin
 bin/*.pdf
-
+archer2/
