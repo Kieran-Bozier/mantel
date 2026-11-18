@@ -1,7 +1,7 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+message: "If you use this software, please cite the article below."
 type: software
-title: "mantel: Bloch-basis evaluation of the screened Coulomb interaction"
+title: "Mantel: Bloch-basis evaluation of the screened Coulomb interaction"
 authors:
   - family-names: Bozier
     given-names: Kieran
@@ -11,14 +11,35 @@ date-released: "2026-10-07"
 license: MIT
 repository-code: "https://github.com/Kieran-Bozier/mantel"
 abstract: >
-  mantel computes the screened Coulomb interaction matrix elements W(n,m,k)
-  in the Bloch basis using DFT wavefunctions and a dielectric matrix from
-  Yambo. It uses FFT-based density products and supports OpenMP parallelisation
-  over k-points.
+  Mantel computes the screened Coulomb interaction matrix elements W in the
+  Bloch basis using DFT wavefunctions from Quantum ESPRESSO and the static
+  inverse dielectric matrix from Yambo. From these it calculates the Coulomb
+  parameter mu and the isoenergy-averaged W for Eliashberg calculations,
+  enabling first-principles Coulomb pseudopotential (mu*) calculations for
+  superconductors. It uses FFT-based density products and supports OpenMP
+  parallelisation over k-points.
 keywords:
+  - "Coulomb pseudopotential"
+  - "mu*"
   - "screened Coulomb interaction"
-  - "GW approximation"
+  - superconductivity
+  - "Eliashberg theory"
+  - "high-pressure hydrides"
   - "many-body perturbation theory"
   - "density functional theory"
+  - "Quantum ESPRESSO"
+  - Yambo
   - Fortran
-  - FFTW
+preferred-citation:
+  type: article
+  title: "Enhanced Coulomb pseudopotentials in high-pressure hydrides from first principles"
+  authors:
+    - family-names: Bozier
+      given-names: Kieran
+    - family-names: Pickard
+      given-names: Chris J.
+  year: 2026
+  identifiers:
+    - type: other
+      value: "arXiv:2610.12563"
+  url: "https://arxiv.org/abs/2610.12563"
