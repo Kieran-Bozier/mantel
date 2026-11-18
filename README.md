@@ -132,12 +132,20 @@ An overview of the Tutorials is given in `/docs/tutorial.md`, and detailed instr
 
 ## Citing
 
-If you use `mantel` in your research, please cite:
+## Citing
 
-```
-Kieran Bozier, University of Cambridge (2026).
-mantel: Bloch-basis evaluation of the screened Coulomb interaction.
-https://github.com/Kieran-Bozier/mantel
+If you use Mantel in your research, please cite:
+
+> K. Bozier and C. J. Pickard, "Enhanced Coulomb pseudopotentials in high-pressure hydrides from first principles", [arXiv:2610.12563](https://arxiv.org/abs/2610.12563) (2026).
+
+```bibtex
+@article{bozier2026enhanced,
+  title   = {Enhanced Coulomb pseudopotentials in high-pressure hydrides from first principles},
+  author  = {Bozier, Kieran and Pickard, Chris J.},
+  journal = {arXiv preprint arXiv:2610.12563},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2610.12563}
+}
 ```
 
 A `CITATION.cff` file is included for machine-readable citation (used by GitHub's "Cite this repository" button).
