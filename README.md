@@ -132,8 +132,6 @@ An overview of the Tutorials is given in `/docs/tutorial.md`, and detailed instr
 
 ## Citing
 
-## Citing
-
 If you use Mantel in your research, please cite:
 
 > K. Bozier and C. J. Pickard, "Enhanced Coulomb pseudopotentials in high-pressure hydrides from first principles", [arXiv:2610.12563](https://arxiv.org/abs/2610.12563) (2026).
